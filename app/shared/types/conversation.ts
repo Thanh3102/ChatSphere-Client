@@ -27,7 +27,7 @@ export type ConversationMessage = {
   fileURL: string;
   fileSecureURL: string;
   fileSize: number;
-  responseMessage: ConversationResponseMessage;
+  responseMessage: ConversationMessage;
   seen: UserBasicInfo[];
   sender: UserBasicInfo;
 };

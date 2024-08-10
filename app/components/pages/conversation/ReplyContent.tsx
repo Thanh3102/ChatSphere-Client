@@ -45,7 +45,7 @@ export default function ReplyContent({ message, currentUserId }: Props) {
         onClick={() =>
           dispatch(
             setFocusMessage({
-              id: message.responseMessage.id,
+              message: message.responseMessage,
               clickedAt: Date.now(),
             })
           )

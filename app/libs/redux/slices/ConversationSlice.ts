@@ -7,10 +7,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface ConversationState {
   conversation: ConversationBasicInfo | undefined;
   replyMessage: ConversationMessage | undefined | null;
-  focusMessage: {
-    id: string;
-    clickedAt: number;
-  } | null;
+  oldestMessage: ConversationMessage | null | undefined;
+  focusMessage:
+    | ({
+        clickedAt: number;
+      } & ConversationMessage)
+    | null;
   openInfo: boolean;
   openHeaderInfo: boolean;
   openPinMessage: boolean;
@@ -22,6 +24,7 @@ const initialState = {
   conversation: undefined,
   replyMessage: null,
   focusMessage: null,
+  oldestMessage: null,
   openInfo: true,
   openHeaderInfo: false,
   openPinMessage: false,
@@ -35,6 +38,7 @@ const conversationSlice = createSlice({
   reducers: {
     setConversation(state, action: PayloadAction<ConversationBasicInfo>) {
       state.conversation = action.payload;
+      state.oldestMessage = action.payload.messages[0];
     },
     setMessages(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
@@ -49,9 +53,12 @@ const conversationSlice = createSlice({
     },
     setFocusMessage(
       state,
-      action: PayloadAction<{ id: string; clickedAt: number }>
+      action: PayloadAction<{ message: ConversationMessage; clickedAt: number }>
     ) {
-      state.focusMessage = action.payload;
+      state.focusMessage = {
+        ...action.payload.message,
+        clickedAt: action.payload.clickedAt,
+      };
     },
     setFileSelectTab(state, action: PayloadAction<"mediaFile" | "file">) {
       state.fileTabSelect = action.payload;
@@ -71,6 +78,22 @@ const conversationSlice = createSlice({
     addNewMessage(state, action: PayloadAction<ConversationMessage>) {
       if (state.conversation) {
         state.conversation.messages.push(action.payload);
+      }
+    },
+    addOldMessage(
+      state,
+      action: PayloadAction<{
+        messages: ConversationMessage[];
+        focusMessage?: ConversationMessage;
+      }>
+    ) {
+      const { messages, focusMessage } = action.payload;
+      if (state.conversation) {
+        state.conversation.messages.unshift(...messages);
+        state.oldestMessage = messages[0];
+        if (focusMessage) {
+          state.focusMessage = { ...focusMessage, clickedAt: Date.now() };
+        }
       }
     },
     addNewPinMessage(state, action: PayloadAction<ConversationMessage>) {
@@ -133,6 +156,7 @@ export const {
   setOpenHeaderInfo,
   setOpenPinMessage,
   addNewMessage,
+  addOldMessage,
   addNewPinMessage,
   removePinMessage,
   recallMessage,

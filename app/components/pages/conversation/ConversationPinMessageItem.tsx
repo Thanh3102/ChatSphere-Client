@@ -33,11 +33,11 @@ export default function ConversationPinMessageItem({ message }: Props) {
     socket.emit(UN_PIN_MESSAGE_EVENT, { messageId: message.id });
   };
 
-  const handleSeeMessage = (messageId: string) => {
+  const handleSeeMessage = (message: ConversationMessage) => {
     setIsMoreOpen(false);
     dispatch(
       setFocusMessage({
-        id: message.id,
+        message: message,
         clickedAt: Date.now(),
       })
     );
@@ -82,7 +82,7 @@ export default function ConversationPinMessageItem({ message }: Props) {
           <PopoverContent>
             <div
               className="w-full rounded-lg p-2 hover:cursor-pointer hover:bg-gray-100 text-left"
-              onClick={() => handleSeeMessage(message.id)}
+              onClick={() => handleSeeMessage(message)}
             >
               Xem trong đoạn chat
             </div>

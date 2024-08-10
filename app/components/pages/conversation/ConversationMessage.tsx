@@ -1,12 +1,14 @@
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/react";
 import ConversationMessageItem from "./ConversationMessageItem";
 import {
   addNewMessage,
   addNewPinMessage,
+  addOldMessage,
   recallMessage,
   removePinMessage,
+  setFocusMessage,
 } from "@/app/libs/redux/slices/ConversationSlice";
 import { getSocket } from "@/socket";
 import {
@@ -17,6 +19,9 @@ import {
 } from "@/app/shared/constants/SocketEvent";
 import { ConversationMessage as ConversationMessageType } from "@/app/shared/types/conversation";
 import { Spinner } from "@nextui-org/react";
+import { GET_CONVERSATION_OLDER_MESSAGES_ROUTE } from "@/app/shared/constants/ApiRoute";
+import toast from "react-hot-toast";
+import { FaArrowDown } from "react-icons/fa6";
 
 interface Props {
   messages: ConversationMessageType[];
@@ -24,9 +29,12 @@ interface Props {
 
 export default function ConversationMessage({ messages }: Props) {
   const { data: session } = useSession();
-  const { conversation, focusMessage } = useAppSelector(
+  const { conversation, focusMessage, oldestMessage } = useAppSelector(
     (state) => state.conversation
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFullMessage, setIsFullMessage] = useState<boolean>(false);
+  const [showToBottom, setShowToBottom] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<{ [key: string]: HTMLDivElement }>({});
@@ -34,6 +42,62 @@ export default function ConversationMessage({ messages }: Props) {
   const scrollToBottom = () => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight + 100;
+    }
+  };
+
+  const scrollCallback = () => {
+    if (containerRef.current) {
+      if (
+        containerRef.current.scrollHeight - containerRef.current.scrollTop >
+        containerRef.current.clientHeight + 100
+      ) {
+        setShowToBottom(true);
+      } else {
+        setShowToBottom(false);
+      }
+      if (containerRef.current.scrollTop == 0 && oldestMessage) {
+        getOlderMessages(oldestMessage.createdAt);
+      }
+    }
+  };
+
+  const getOlderMessages = async (
+    before: Date,
+    to?: Date,
+    focusMessage?: ConversationMessageType
+  ) => {
+    if (isLoading || isFullMessage) return;
+    const prevMessage = oldestMessage;
+    const session = await getSession();
+    const beforeDate = before.toString();
+    const toDate = to ? to.toString() : "";
+
+    const response = await fetch(
+      `${GET_CONVERSATION_OLDER_MESSAGES_ROUTE}?id=${conversation?.id}&before=${beforeDate}&to=${toDate}`,
+      {
+        headers: {
+          authorization: `Bearer ${session?.accessToken}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data: { messages: ConversationMessageType[] } =
+        await response.json();
+      if (data.messages.length == 0) setIsFullMessage(true);
+      await dispatch(
+        addOldMessage({ messages: data.messages, focusMessage: focusMessage })
+      );
+      setIsLoading(false);
+      if (prevMessage) {
+        messagesRef.current[prevMessage?.id].scrollIntoView({
+          behavior: "smooth",
+        });
+      }
+    } else {
+      const error = await response.json();
+      toast.error(error.message);
+      setIsLoading(false);
     }
   };
 
@@ -69,15 +133,6 @@ export default function ConversationMessage({ messages }: Props) {
 
     scrollToBottom();
 
-    if (containerRef.current) {
-      containerRef.current.addEventListener("scroll", () => {
-        if (containerRef.current) {
-          console.log("Top", containerRef.current.scrollTop);
-          console.log("Height", containerRef.current.scrollHeight);
-        }
-      });
-    }
-
     return () => {
       io.off(NEW_MESSAGE_EVENT);
       io.off(PIN_MESSAGE_EVENT);
@@ -87,20 +142,52 @@ export default function ConversationMessage({ messages }: Props) {
   }, []);
 
   useEffect(() => {
-    if (focusMessage) {
-      messagesRef.current[focusMessage.id].scrollIntoView({
-        behavior: "smooth",
-      });
+    if (conversation && focusMessage) {
+      const isMessageLoaded = conversation.messages.find(
+        (msg) => msg.id === focusMessage.id
+      );
+      if (isMessageLoaded) {
+        setTimeout(() => {
+          messagesRef.current[focusMessage.id].scrollIntoView({
+            behavior: "smooth",
+          });
+        }, 500);
+      } else {
+        if (oldestMessage) {
+          getOlderMessages(
+            oldestMessage.createdAt,
+            focusMessage.createdAt,
+            focusMessage
+          );
+        }
+      }
     }
   }, [focusMessage]);
+
+  useEffect(() => {
+    containerRef.current?.addEventListener("scroll", scrollCallback);
+    return () => {
+      containerRef.current?.removeEventListener("scroll", scrollCallback);
+    };
+  }, [oldestMessage]);
 
   return (
     <Fragment>
       <div
-        className="flex-1 px-3 min-h-0 overflow-y-auto overflow-x-hidden"
+        className="flex-1 px-3 min-h-0 overflow-y-auto overflow-x-hidden relative"
         ref={containerRef}
       >
-        {false && (
+        {showToBottom && (
+          <div className="fixed bottom-[15%] left-1/2 z-20">
+            <div
+              className="rounded-full p-2 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
+              onClick={scrollToBottom}
+            >
+              <FaArrowDown />
+            </div>
+          </div>
+        )}
+        {isLoading && (
           <div className="h-10 flex justify-center items-center">
             <Spinner />
           </div>
