@@ -1,7 +1,16 @@
+import { useAppDispatch } from "@/app/libs/hooks";
+import {
+  setFileSelectTab,
+  setOpenFileList,
+} from "@/app/libs/redux/slices/ConversationSlice";
 import { IoDocumentText, IoImages } from "react-icons/io5";
 
 export default function ConversationFileSelect() {
-  const handleOpenTab = (tab: string) => {};
+  const dispatch = useAppDispatch();
+  const handleOpenTab = (tab: "file" | "mediaFile") => {
+    dispatch(setOpenFileList(true));
+    dispatch(setFileSelectTab(tab));
+  };
 
   return (
     <>

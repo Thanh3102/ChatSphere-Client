@@ -61,7 +61,7 @@ const ConversationMessageItem = forwardRef<HTMLDivElement, Props>(
         </div>
       );
     }
-    return <>Mesage</>;
+    return <>Không thể hiển thị tin nhắn này</>;
   }
 );
 

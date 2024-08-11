@@ -23,6 +23,7 @@ export type ConversationMessage = {
   isTranfer: boolean;
   isPin: boolean;
   pinnedAt: Date;
+  fileType: string;
   fileName: string;
   fileURL: string;
   fileSecureURL: string;

@@ -99,22 +99,36 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
   const fetchFileAttach = async () => {
     if (files.length !== 0 && conversationId) {
       for (let file of files) {
-        const formData = new FormData();
-        formData.append("attachFile", file);
-        formData.append("conversationId", conversationId);
+        const uploadFilePromise = new Promise(async (resolve, reject) => {
+          const formData = new FormData();
+          formData.append("attachFile", file);
+          formData.append("conversationId", conversationId);
 
-        console.log(file);
-        const response = await fetch(UPLOAD_FILE_ATTACH_ROUTE, {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${session?.accessToken}`,
-          },
-          body: formData,
+          const response = await fetch(UPLOAD_FILE_ATTACH_ROUTE, {
+            method: "POST",
+            headers: {
+              authorization: `Bearer ${session?.accessToken}`,
+            },
+            body: formData,
+          });
+
+          if (response.ok) {
+            resolve("Gửi file thành công");
+            if (pathName !== `/conversations/${conversationId}`)
+              router.push(`/conversations/${conversationId}`);
+          } else {
+            reject("Đã xảy ra lỗi");
+          }
         });
-        if (response.ok) {
-          if (pathName !== `/conversations/${conversationId}`)
-            router.push(`/conversations/${conversationId}`);
-        }
+        toast.promise(
+          uploadFilePromise,
+          {
+            loading: "Đang gửi",
+            error: "Đã xảy ra lỗi",
+            success: "Gửi thành công",
+          },
+          { position: "bottom-left" }
+        );
       }
     }
   };

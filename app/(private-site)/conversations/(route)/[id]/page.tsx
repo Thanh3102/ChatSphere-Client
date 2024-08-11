@@ -10,6 +10,7 @@ import { ConversationBasicInfo } from "@/app/shared/types/conversation";
 import { setConversation } from "@/app/libs/redux/slices/ConversationSlice";
 import { Spinner } from "@nextui-org/react";
 import ConversationDetail from "@/app/components/pages/conversation/ConversationDetail";
+import ConversationFileList from "@/app/components/pages/conversation/ConversationFileList";
 
 interface Props {
   params: { id: string };
@@ -18,7 +19,7 @@ interface Props {
 export default function Page({ params }: Props) {
   const conversationId = params.id;
   const [loading, setLoading] = useState<boolean>(false);
-  const { conversation, openInfo } = useAppSelector(
+  const { conversation, openInfo, openFileList } = useAppSelector(
     (state) => state.conversation
   );
   const dispatch = useAppDispatch();
@@ -64,7 +65,8 @@ export default function Page({ params }: Props) {
               <div className="flex-1">Không thể xem đoạn chat</div>
             )}
           </div>
-          {openInfo && <ConversationDetail />}
+          {openInfo &&
+            (openFileList ? <ConversationFileList /> : <ConversationDetail />)}
         </>
       )}
     </div>

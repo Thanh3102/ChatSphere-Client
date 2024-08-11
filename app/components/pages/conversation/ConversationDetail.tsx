@@ -7,22 +7,10 @@ import { useImmer } from "use-immer";
 import ConversationInfo from "./ConversationInfo";
 import ConversationSetting from "./ConversationSetting";
 import ConversationFileSelect from "./ConversationFileSelect";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  Spinner,
-} from "@nextui-org/react";
 import { Fragment } from "react";
-import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
-import ConversationPinMessageList from "./ConversationPinMessageList";
 
 export default function ConversationDetail() {
-  const { openPinMessage, conversation } = useAppSelector(
-    (state) => state.conversation
-  );
-  const dispatch = useAppDispatch();
+  const { conversation } = useAppSelector((state) => state.conversation);
   const { data: session } = useSession();
   const [tabs, setTabs] = useImmer([
     {
@@ -68,31 +56,6 @@ export default function ConversationDetail() {
           ))}
         </div>
       </div>
-      <Modal
-        isOpen={openPinMessage}
-        onOpenChange={(open) => dispatch(setOpenPinMessage(open))}
-        size="2xl"
-        classNames={{
-          closeButton: "top-[0.75rem]",
-        }}
-      >
-        <ModalContent>
-          <ModalHeader className="flex justify-center items-center">
-            Tin nhắn đã ghim
-          </ModalHeader>
-          {conversation ? (
-            <ModalBody>
-              <ConversationPinMessageList
-                pinMessages={conversation.pinMessages}
-              />
-            </ModalBody>
-          ) : (
-            <div className="h-full flex items-center justify-center w-full">
-              <Spinner />
-            </div>
-          )}
-        </ModalContent>
-      </Modal>
     </Fragment>
   );
 }

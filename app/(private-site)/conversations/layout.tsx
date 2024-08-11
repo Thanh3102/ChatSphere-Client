@@ -4,10 +4,18 @@ import { Fragment, ReactNode, useEffect, useRef, useState } from "react";
 import { getSocket } from "@/socket";
 import ContentBox from "../../components/pages/conversation/ConversationBox";
 import { useSession } from "next-auth/react";
-import { Spinner } from "@nextui-org/react";
 import toast from "react-hot-toast";
 import CallComing from "@/app/components/pages/conversation/CallComing";
-
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  Spinner,
+} from "@nextui-org/react";
+import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
+import ConversationPinMessageList from "@/app/components/pages/conversation/ConversationPinMessageList";
+import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
 interface Props {
   children: ReactNode;
 }
@@ -25,6 +33,10 @@ export default function ConversationLayout({ children }: Props) {
   const { data: session, status } = useSession();
   const [isReceiveCall, setIsReceiveCall] = useState<boolean>(false);
   const [callInfo, setCallInfo] = useState<CallInfo>();
+  const dispatch = useAppDispatch();
+  const { openPinMessage, conversation } = useAppSelector(
+    (state) => state.conversation
+  );
 
   useEffect(() => {
     if (session?.user) {
@@ -70,11 +82,35 @@ export default function ConversationLayout({ children }: Props) {
         <div className="px-5 flex -mx-2 h-full gap-4">
           <Navbar />
           <ContentBox />
-          <div className="h-full flex-[3] min-w-0">
-            {children}
-          </div>
+          <div className="h-full flex-[3] min-w-0">{children}</div>
         </div>
       </div>
+      
+      <Modal
+        isOpen={openPinMessage}
+        onOpenChange={(open) => dispatch(setOpenPinMessage(open))}
+        size="2xl"
+        classNames={{
+          closeButton: "top-[0.75rem]",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex justify-center items-center">
+            Tin nhắn đã ghim
+          </ModalHeader>
+          {conversation ? (
+            <ModalBody>
+              <ConversationPinMessageList
+                pinMessages={conversation.pinMessages}
+              />
+            </ModalBody>
+          ) : (
+            <div className="h-full flex items-center justify-center w-full">
+              <Spinner />
+            </div>
+          )}
+        </ModalContent>
+      </Modal>
     </Fragment>
   );
 }
