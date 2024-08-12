@@ -14,7 +14,7 @@ import {
 } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChangeEvent, Fragment, useRef, useState } from "react";
+import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { BiSolidLike } from "react-icons/bi";
 import { ImAttachment } from "react-icons/im";
@@ -23,6 +23,7 @@ import ReplyMessage from "./ReplyMessage";
 import { setReplyMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import { FaFaceGrinWide, FaMicrophone } from "react-icons/fa6";
 import EmojiPicker, {
+  Emoji,
   EmojiClickData,
   EmojiStyle,
   Theme,
@@ -38,8 +39,11 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { data: session } = useSession();
   const { members } = useAppSelector((state) => state.newConversation);
-  const { replyMessage } = useAppSelector((state) => state.conversation);
+  const { replyMessage, conversation } = useAppSelector(
+    (state) => state.conversation
+  );
   const [message, setMessage] = useState<string>("");
+  const [emoji, setEmoji] = useState<string>("1f44d");
   const [files, setFiles] = useState<File[]>([]);
   const [stream, setStream] = useState<MediaStream>();
   const [openVoiceRecord, setOpenVoiceRecord] = useState<boolean>(false);
@@ -72,6 +76,26 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
         const res = await response.json();
         router.push(`/conversations/${res.conversationId}`);
       }
+    }
+  };
+
+  const sendEmoji = async () => {
+    const response = await fetch(SEND_MESSAGE_ROUTE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${session?.accessToken}`,
+      },
+      body: JSON.stringify({
+        conversationId: conversationId,
+        message: emoji,
+        type: "emoji",
+        replyMessageId: replyMessage?.id,
+      }),
+    });
+    if (response.ok) {
+      if (pathName !== `/conversations/${conversationId}`)
+        router.push(`/conversations/${conversationId}`);
     }
   };
 
@@ -203,6 +227,12 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
     setStream(undefined);
   };
 
+  useEffect(() => {
+    if (conversation) {
+      setEmoji(conversation.emoji);
+    }
+  }, [conversation?.emoji]);
+
   return (
     <Fragment>
       {replyMessage && (
@@ -269,7 +299,15 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                 onKeyDown={handleOnKeyDown}
                 className="py-2 bg-gray-200 outline-none  w-full"
               />
-              <Popover isOpen={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+              <Popover
+                isOpen={isOpen}
+                onOpenChange={(open) => setIsOpen(open)}
+                offset={25}
+                placement="top"
+                classNames={{
+                  content: "p-0",
+                }}
+              >
                 <PopoverTrigger>
                   <div className="text-blue-500 hover:cursor-pointer p-1 rounded-full hover:bg-gray-100">
                     <FaFaceGrinWide />
@@ -279,6 +317,13 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                   <EmojiPicker
                     onEmojiClick={handleEmojiClick}
                     emojiStyle={EmojiStyle.FACEBOOK}
+                    width={350}
+                    height={300}
+                    searchPlaceholder="Tìm kiếm"
+                    previewConfig={{ showPreview: false }}
+                    lazyLoadEmojis
+                    skinTonesDisabled
+                    autoFocusSearch
                   />
                 </PopoverContent>
               </Popover>
@@ -308,17 +353,15 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
           ) : (
             <div className=" flex flex-col justify-end">
               <Tooltip
-                content="Gửi biểu tượng cảm xúc"
+                content={<span className="flex gap-1 items-center">Gửi <Emoji unified={emoji} size={14}/></span>}
                 showArrow
                 placement="top"
               >
                 <div
                   className="mx-2 p-2 rounded-full hover:bg-gray-100 hover:cursor-pointer"
-                  onClick={() => {
-                    toast.error("Đang xây dựng");
-                  }}
+                  onClick={sendEmoji}
                 >
-                  <BiSolidLike className="text-xl text-blue-500" />
+                  <Emoji unified={emoji} size={25} />
                 </div>
               </Tooltip>
             </div>

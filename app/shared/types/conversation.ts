@@ -9,8 +9,7 @@ export type ConversationBasicInfo = {
   users: UserBasicInfo[];
   messages: ConversationMessage[];
   pinMessages: ConversationMessage[];
-  //mediaFile: 
-  //File:
+  emoji: string;
 };
 
 export type ConversationMessage = {

@@ -9,6 +9,7 @@ import { Fragment } from "react";
 import { useAppDispatch } from "@/app/libs/hooks";
 import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import { GiPin } from "react-icons/gi";
+import { Emoji } from "emoji-picker-react";
 
 interface Props {
   isCurrentUser: boolean;
@@ -214,11 +215,34 @@ function MessageType({ message, isCurrentUser }: MessageTypeProps) {
           );
         default:
           return (
-            <span className="p-2 text-sm rounded-xl text-gray-100">
+            <span className="text-sm text-gray-100 p-2 rounded-xl border-1 border-gray-100 italic">
               Không thể hiện thị nội dung
             </span>
           );
       }
+    case "emoji":
+      return (
+        <Tooltip
+          content={DateToString(message.createdAt)}
+          placement={isCurrentUser ? "left" : "right"}
+          closeDelay={0}
+        >
+          <div
+            className={`relative my-2`}
+          >
+            {message.isPin && (
+              <div className="absolute -top-2 -right-2 text-red-500 text-lg">
+                <GiPin />
+              </div>
+            )}
+            <Emoji unified={message.body} size={30} />
+          </div>
+        </Tooltip>
+      );
+    default:
+      <span className="text-sm text-gray-100 p-2 rounded-xl border-1 border-gray-100 italic">
+        Không thể hiện thị nội dung
+      </span>;
   }
 }
 
