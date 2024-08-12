@@ -32,7 +32,7 @@ export default function ConversationDetail() {
   const info = getConversationInfo(conversation, session?.user.id);
   return (
     <Fragment>
-      <div className="h-full overflow-y-auto flex-[0.5] bg-white rounded-lg px-2">
+      <div className="h-full overflow-y-auto flex-[0.5] bg-white rounded-lg px-2 min-w-0">
         <div className="py-10 flex justify-center items-center flex-col gap-4">
           <Avatar showFallback src={info.avatar ?? ""} className="scale-150" />
           <span className="font-semibold text-xl mt-2">{info.name}</span>

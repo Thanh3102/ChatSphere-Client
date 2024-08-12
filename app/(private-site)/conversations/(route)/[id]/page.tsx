@@ -10,7 +10,7 @@ import { ConversationBasicInfo } from "@/app/shared/types/conversation";
 import { setConversation } from "@/app/libs/redux/slices/ConversationSlice";
 import { Spinner } from "@nextui-org/react";
 import ConversationDetail from "@/app/components/pages/conversation/ConversationDetail";
-import ConversationFileList from "@/app/components/pages/conversation/ConversationFileList";
+import ConversationFileTabs from "@/app/components/pages/conversation/ConversationFileTabs";
 
 interface Props {
   params: { id: string };
@@ -26,7 +26,6 @@ export default function Page({ params }: Props) {
   const getConversationInfo = async () => {
     setLoading(true);
     const session = await getSession();
-
     const response = await fetch(
       `${GET_CONVERSATION_INFO_ROUTE}?id=${conversationId}`,
       {
@@ -66,7 +65,7 @@ export default function Page({ params }: Props) {
             )}
           </div>
           {openInfo &&
-            (openFileList ? <ConversationFileList /> : <ConversationDetail />)}
+            (openFileList ? <ConversationFileTabs /> : <ConversationDetail />)}
         </>
       )}
     </div>

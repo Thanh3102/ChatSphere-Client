@@ -8,17 +8,19 @@ interface Props {
   onClose: () => void;
 }
 
-const ConversationFileItem = ({ file, onClose }: Props) => {
+const ConversationAttachFileItem = ({ file, onClose }: Props) => {
   if (file.type.startsWith("image")) {
     var imageURL = URL.createObjectURL(file);
     return (
-      <div className="relative">
+      <div className="relative h-14 w-14  ">
         <Image
-          width={56}
-          height={56}
+          width={0}
+          height={0}
           src={imageURL}
           alt=""
-          className="rounded-lg relative"
+          className="rounded-lg"
+          layout="fill"
+          objectFit="cover"
         />
         <Tooltip content="Gỡ file đính kèm">
           <div
@@ -38,7 +40,6 @@ const ConversationFileItem = ({ file, onClose }: Props) => {
           <video
             src={videoURL}
             muted
-            
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
         </div>
@@ -72,4 +73,4 @@ const ConversationFileItem = ({ file, onClose }: Props) => {
   }
 };
 
-export default ConversationFileItem;
+export default ConversationAttachFileItem;

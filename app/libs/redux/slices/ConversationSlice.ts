@@ -1,5 +1,6 @@
 import {
   ConversationBasicInfo,
+  ConversationFile,
   ConversationMessage,
 } from "@/app/shared/types/conversation";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -8,6 +9,7 @@ interface ConversationState {
   conversation: ConversationBasicInfo | undefined;
   replyMessage: ConversationMessage | undefined | null;
   oldestMessage: ConversationMessage | null | undefined;
+  oldestMediaFile: ConversationFile | null | undefined;
   focusMessage:
     | ({
         clickedAt: number;
@@ -25,6 +27,7 @@ const initialState = {
   replyMessage: null,
   focusMessage: null,
   oldestMessage: null,
+  oldestMediaFile: null,
   openInfo: true,
   openHeaderInfo: false,
   openPinMessage: false,
@@ -39,6 +42,8 @@ const conversationSlice = createSlice({
     setConversation(state, action: PayloadAction<ConversationBasicInfo>) {
       state.conversation = action.payload;
       state.oldestMessage = action.payload.messages[0];
+      state.oldestMediaFile =
+        action.payload.mediaFiles[action.payload.mediaFiles.length - 1];
     },
     setMessages(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
@@ -78,6 +83,37 @@ const conversationSlice = createSlice({
     addNewMessage(state, action: PayloadAction<ConversationMessage>) {
       if (state.conversation) {
         state.conversation.messages.push(action.payload);
+        if (action.payload.type === "file") {
+          if (
+            action.payload.fileType.startsWith("image") ||
+            action.payload.fileType.startsWith("video")
+          ) {
+            state.conversation.mediaFiles.unshift({
+              id: action.payload.id,
+              createdAt: action.payload.createdAt,
+              fileName: action.payload.fileName,
+              fileSecureURL: action.payload.fileSecureURL,
+              fileSize: action.payload.fileSize,
+              fileType: action.payload.fileType,
+              fileURL: action.payload.fileURL,
+            });
+          } else {
+            //           state.conversation.files.push({
+            // id: action.payload.id,
+            // createdAt: action.payload.createdAt,
+            // fileName: action.payload.fileName,
+            // fileSecureURL: action.payload.fileSecureURL,
+            // fileSize: action.payload.fileSize,
+            // fileType: action.payload.fileType,
+            // fileURL: action.payload.fileURL,
+          }
+        }
+      }
+    },
+    addOldMediaFiles(state, action: PayloadAction<ConversationFile[]>) {
+      if (state.conversation) {
+        state.conversation.mediaFiles.push(...action.payload);
+        state.oldestMediaFile = action.payload[action.payload.length - 1];
       }
     },
     addOldMessage(
@@ -140,6 +176,17 @@ const conversationSlice = createSlice({
             state.conversation.messages[index].responseMessage.recall = true;
           }
         });
+        if (state.conversation.mediaFiles.length !== 0) {
+          const mediaFileIndex = state.conversation.mediaFiles.findIndex(
+            (file) => file.id === action.payload
+          );
+          // const fileIndex = state.conversation.files.findIndex(
+          //   (file) => file.id === action.payload
+          // );
+          if (mediaFileIndex !== -1) {
+            state.conversation.mediaFiles.splice(mediaFileIndex, 1);
+          }
+        }
       }
     },
   },
@@ -157,6 +204,7 @@ export const {
   setOpenPinMessage,
   addNewMessage,
   addOldMessage,
+  addOldMediaFiles,
   addNewPinMessage,
   removePinMessage,
   recallMessage,

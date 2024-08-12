@@ -14,6 +14,8 @@ export const GET_USER_CONVERSATION_ROUTE = `${BASE_URL}/api/message/getConversat
 export const GET_CONVERSATION_INFO_ROUTE = `${BASE_URL}/api/message/getConversationInfo`;
 export const GET_CONVERSATION_MESSAGES_ROUTE = `${BASE_URL}/api/message/getConversationMessages`;
 export const GET_CONVERSATION_OLDER_MESSAGES_ROUTE = `${BASE_URL}/api/message/getOlderMessages`;
+export const GET_CONVERSATION_MEDIA_FILE = `${BASE_URL}/api/message/getConversationMediaFile`;
+
 export const CHECK_CONVERSATION_EXISTS_ROUTE = `${BASE_URL}/api/message/checkConversationExists`;
 
 export const GET_USER_BY_ID_ROUTE = `${BASE_URL}/api/user/getById`;

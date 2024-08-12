@@ -28,7 +28,7 @@ import EmojiPicker, {
   EmojiStyle,
   Theme,
 } from "emoji-picker-react";
-import ConversationFileItem from "./ConversationFileItem";
+import ConversationFileItem from "./ConversationAttachFileItem";
 import VoiceRecorder from "./VoiceRecorder";
 
 interface Props {
@@ -353,7 +353,11 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
           ) : (
             <div className=" flex flex-col justify-end">
               <Tooltip
-                content={<span className="flex gap-1 items-center">Gửi <Emoji unified={emoji} size={14}/></span>}
+                content={
+                  <span className="flex gap-1 items-center">
+                    Gửi <Emoji unified={emoji} size={14} />
+                  </span>
+                }
                 showArrow
                 placement="top"
               >

@@ -9,6 +9,7 @@ export type ConversationBasicInfo = {
   users: UserBasicInfo[];
   messages: ConversationMessage[];
   pinMessages: ConversationMessage[];
+  mediaFiles: ConversationFile[];
   emoji: string;
 };
 
@@ -30,6 +31,16 @@ export type ConversationMessage = {
   responseMessage: ConversationMessage;
   seen: UserBasicInfo[];
   sender: UserBasicInfo;
+};
+
+export type ConversationFile = {
+  id: string;
+  fileType: string;
+  fileName: string;
+  fileURL: string;
+  fileSecureURL: string;
+  fileSize: number;
+  createdAt: Date,
 };
 
 export type ConversationResponseMessage = {
