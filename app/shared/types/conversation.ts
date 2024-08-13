@@ -10,9 +10,9 @@ export type ConversationBasicInfo = {
   messages: ConversationMessage[];
   pinMessages: ConversationMessage[];
   mediaFiles: ConversationMessage[];
+  files: ConversationMessage[];
   emoji: string;
 };
-
 
 export type ConversationMessage = {
   id: string;

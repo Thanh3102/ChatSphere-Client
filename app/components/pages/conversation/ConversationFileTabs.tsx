@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
 import {
+  addOldFiles,
   addOldMediaFiles,
   setFileSelectTab,
   setOpenFileList,
@@ -10,12 +11,13 @@ import ConversationFileList from "./ConversationFileList";
 import ConversationMediaFileList from "./ConversationMediaFileList";
 import { useEffect, useRef, useState } from "react";
 import { getSession } from "next-auth/react";
-import { GET_CONVERSATION_MEDIA_FILE } from "@/app/shared/constants/ApiRoute";
+import { GET_CONVERSATION_FILE } from "@/app/shared/constants/ApiRoute";
 
 export default function ConversationFileTabs() {
   const fileContainerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLastMediaFile, setIsLastMediaFile] = useState<boolean>(false);
+  const [isLastFile, setIsLastFile] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const { fileTabSelect, conversation } = useAppSelector(
     (state) => state.conversation
@@ -31,21 +33,36 @@ export default function ConversationFileTabs() {
     dispatch(setFileSelectTab(tab));
   };
 
-  const getMediaFile = async () => {
-    if (conversation && !isLastMediaFile) {
+  const getMediaFile = async (type: "mediaFile" | "file") => {
+    if (isLoading) return;
+    if (type === "file" && isLastFile) return;
+    if (type === "mediaFile" && isLastMediaFile) return;
+
+    if (conversation) {
       const session = await getSession();
       if (!session?.accessToken) return;
-      const before =
-        conversation.mediaFiles.length !== 0
-          ? conversation.mediaFiles[
-              conversation.mediaFiles.length - 1
-            ].createdAt.toString()
-          : "";
-
+      let before = "";
+      switch (type) {
+        case "file":
+          before =
+            conversation.files.length !== 0
+              ? conversation.files[
+                  conversation.files.length - 1
+                ].createdAt.toString()
+              : "";
+          break;
+        case "mediaFile":
+          before =
+            conversation.mediaFiles.length !== 0
+              ? conversation.mediaFiles[
+                  conversation.mediaFiles.length - 1
+                ].createdAt.toString()
+              : "";
+          break;
+      }
       setIsLoading(true);
-
       const response = await fetch(
-        `${GET_CONVERSATION_MEDIA_FILE}?id=${conversation.id}&before=${before}`,
+        `${GET_CONVERSATION_FILE}?id=${conversation.id}&before=${before}&type=${type}`,
         {
           headers: {
             authorization: `Bearer ${session.accessToken}`,
@@ -55,14 +72,21 @@ export default function ConversationFileTabs() {
 
       if (response.ok) {
         const data = await response.json();
-
-        if (data.length == 0) {
-          setIsLastMediaFile(true);
+        switch (type) {
+          case "mediaFile":
+            if (data.length == 0) {
+              setIsLastMediaFile(true);
+            }
+            await dispatch(addOldMediaFiles(data));
+            break;
+          case "file":
+            if (data.length == 0) {
+              setIsLastFile(true);
+            }
+            await dispatch(addOldFiles(data));
+            break;
         }
-
-        dispatch(addOldMediaFiles(data));
       }
-
       setIsLoading(false);
     }
   };
@@ -72,11 +96,10 @@ export default function ConversationFileTabs() {
       if (
         fileContainerRef.current.scrollTop >=
         fileContainerRef.current.scrollHeight -
-          fileContainerRef.current.clientHeight
+          fileContainerRef.current.clientHeight -
+          10
       ) {
-        if (fileTabSelect === "mediaFile") {
-          getMediaFile();
-        }
+        getMediaFile(fileTabSelect);
       }
     }
   };
@@ -86,20 +109,17 @@ export default function ConversationFileTabs() {
       fileContainerRef.current.addEventListener("scroll", handleScroll);
     }
 
-    if (
-      conversation &&
-      conversation.mediaFiles.length < 30 &&
-      !isLastMediaFile
-    ) {
-      getMediaFile();
-    }
-
     return () => {
       if (fileContainerRef.current) {
         fileContainerRef.current.removeEventListener("scroll", handleScroll);
       }
     };
-  }, [conversation?.mediaFiles, isLastMediaFile]);
+  }, [
+    conversation?.mediaFiles,
+    conversation?.files,
+    isLastFile,
+    isLastMediaFile,
+  ]);
 
   return (
     <div

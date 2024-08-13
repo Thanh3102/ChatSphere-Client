@@ -7,8 +7,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface ConversationState {
   conversation: ConversationBasicInfo | undefined;
   replyMessage: ConversationMessage | undefined | null;
-  // oldestMessage: ConversationMessage | null | undefined;
-  // oldestMediaFile: ConversationFile | null | undefined;
   focusMessage:
     | ({
         clickedAt: number;
@@ -25,8 +23,6 @@ const initialState = {
   conversation: undefined,
   replyMessage: null,
   focusMessage: null,
-  // oldestMessage: null,
-  // oldestMediaFile: null,
   openInfo: true,
   openHeaderInfo: false,
   openPinMessage: false,
@@ -38,14 +34,8 @@ const conversationSlice = createSlice({
   name: "Conversation",
   initialState,
   reducers: {
-    setConversation(
-      state,
-      action: PayloadAction<ConversationBasicInfo>
-    ) {
-      state.conversation = { ...action.payload, mediaFiles: [] };
-      // state.oldestMessage = action.payload.messages[0];
-      // state.oldestMediaFile =
-      //   action.payload.mediaFiles[action.payload.mediaFiles.length - 1];
+    setConversation(state, action: PayloadAction<ConversationBasicInfo>) {
+      state.conversation = action.payload;
     },
     setMessages(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
@@ -60,12 +50,19 @@ const conversationSlice = createSlice({
     },
     setFocusMessage(
       state,
-      action: PayloadAction<{ message: ConversationMessage; clickedAt: number }>
+      action: PayloadAction<{
+        message: ConversationMessage;
+        clickedAt: number;
+      } | null>
     ) {
-      state.focusMessage = {
-        ...action.payload.message,
-        clickedAt: action.payload.clickedAt,
-      };
+      if (action.payload) {
+        state.focusMessage = {
+          ...action.payload.message,
+          clickedAt: action.payload.clickedAt,
+        };
+      } else {
+        state.focusMessage = null;
+      }
     },
     setFileSelectTab(state, action: PayloadAction<"mediaFile" | "file">) {
       state.fileTabSelect = action.payload;
@@ -92,14 +89,7 @@ const conversationSlice = createSlice({
           ) {
             state.conversation.mediaFiles.unshift(action.payload);
           } else {
-            //           state.conversation.files.push({
-            // id: action.payload.id,
-            // createdAt: action.payload.createdAt,
-            // fileName: action.payload.fileName,
-            // fileSecureURL: action.payload.fileSecureURL,
-            // fileSize: action.payload.fileSize,
-            // fileType: action.payload.fileType,
-            // fileURL: action.payload.fileURL,
+            state.conversation.files.unshift(action.payload);
           }
         }
       }
@@ -107,7 +97,11 @@ const conversationSlice = createSlice({
     addOldMediaFiles(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
         state.conversation.mediaFiles.push(...action.payload);
-        // state.oldestMediaFile = action.payload[action.payload.length - 1];
+      }
+    },
+    addOldFiles(state, action: PayloadAction<ConversationMessage[]>) {
+      if (state.conversation) {
+        state.conversation.files.push(...action.payload);
       }
     },
     addOldMessage(
@@ -120,7 +114,6 @@ const conversationSlice = createSlice({
       const { messages, focusMessage } = action.payload;
       if (state.conversation) {
         state.conversation.messages.unshift(...messages);
-        // state.oldestMessage = messages[0];
         if (focusMessage) {
           state.focusMessage = { ...focusMessage, clickedAt: Date.now() };
         }
@@ -174,11 +167,14 @@ const conversationSlice = createSlice({
           const mediaFileIndex = state.conversation.mediaFiles.findIndex(
             (file) => file.id === action.payload
           );
-          // const fileIndex = state.conversation.files.findIndex(
-          //   (file) => file.id === action.payload
-          // );
+          const fileIndex = state.conversation.files.findIndex(
+            (file) => file.id === action.payload
+          );
           if (mediaFileIndex !== -1) {
             state.conversation.mediaFiles.splice(mediaFileIndex, 1);
+          }
+          if (fileIndex !== -1) {
+            state.conversation.files.splice(fileIndex, 1);
           }
         }
       }
@@ -199,6 +195,7 @@ export const {
   addNewMessage,
   addOldMessage,
   addOldMediaFiles,
+  addOldFiles,
   addNewPinMessage,
   removePinMessage,
   recallMessage,

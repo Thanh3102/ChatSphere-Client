@@ -55,6 +55,7 @@ export default function ConversationMessage({ messages }: Props) {
       } else {
         setShowToBottom(false);
       }
+
       if (containerRef.current.scrollTop == 0) {
         getOlderMessages();
       }
@@ -65,8 +66,13 @@ export default function ConversationMessage({ messages }: Props) {
     to?: Date,
     focusMessage?: ConversationMessageType
   ) => {
+    console.log("-------------");
+    console.log("Last message", conversation?.messages[0]);
+    console.log("Is full", isFullMessage);
+    console.log("Is Loading", isLoading);
+
     if (isLoading || isFullMessage || !conversation) return;
-    
+
     const session = await getSession();
     if (!session?.accessToken) return;
 
@@ -74,6 +80,8 @@ export default function ConversationMessage({ messages }: Props) {
     const beforeDate = prevMessage.createdAt.toString();
     const toDate = to ? to.toString() : "";
 
+    console.log("Get data");
+    setIsLoading(true);
     const response = await fetch(
       `${GET_CONVERSATION_OLDER_MESSAGES_ROUTE}?id=${conversation?.id}&before=${beforeDate}&to=${toDate}`,
       {
@@ -84,14 +92,16 @@ export default function ConversationMessage({ messages }: Props) {
     );
 
     if (response.ok) {
-      const data: { messages: ConversationMessageType[] } =
-        await response.json();
+      const data = await response.json();
+      console.log(data);
+
       if (data.messages.length == 0) setIsFullMessage(true);
+
       await dispatch(
         addOldMessage({ messages: data.messages, focusMessage: focusMessage })
       );
-      setIsLoading(false);
-      if (prevMessage) {
+
+      if (prevMessage && messagesRef.current[prevMessage.id]) {
         messagesRef.current[prevMessage?.id].scrollIntoView({
           behavior: "smooth",
         });
@@ -99,8 +109,9 @@ export default function ConversationMessage({ messages }: Props) {
     } else {
       const error = await response.json();
       toast.error(error.message);
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -140,6 +151,7 @@ export default function ConversationMessage({ messages }: Props) {
       io.off(PIN_MESSAGE_EVENT);
       io.off(UN_PIN_MESSAGE_EVENT);
       io.off(RECALL_MESSAGE_EVENT);
+      dispatch(setFocusMessage(null));
     };
   }, []);
 
@@ -167,7 +179,7 @@ export default function ConversationMessage({ messages }: Props) {
     return () => {
       containerRef.current?.removeEventListener("scroll", scrollCallback);
     };
-  }, [conversation?.messages, isFullMessage]);
+  }, [conversation?.messages, isFullMessage, isLoading]);
 
   return (
     <Fragment>
