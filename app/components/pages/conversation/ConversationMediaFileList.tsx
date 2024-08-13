@@ -30,10 +30,10 @@ export default function ConversationMediaFileList() {
 
             if (file.fileType.startsWith("video")) {
               return (
-                <div className="px-1 py-1 w-1/3 h-24">
+                <div className="px-1 py-1 w-1/3 h-24" key={index}>
                   <div className="w-full h-full relative overflow-hidden">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-full">
-                      <Link href={file.fileURL} target="_blank" key={index}>
+                      <Link href={file.fileURL} target="_blank">
                         <div className="relative w-full h-full">
                           <video
                             src={file.fileURL}

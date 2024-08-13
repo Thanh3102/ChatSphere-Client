@@ -15,10 +15,12 @@ import { GET_CONVERSATION_MEDIA_FILE } from "@/app/shared/constants/ApiRoute";
 export default function ConversationFileTabs() {
   const fileContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLastMediaFile, setIsLastMediaFile] = useState<boolean>(false);
 
-  const { fileTabSelect, conversation, oldestMediaFile } = useAppSelector(
+  const { fileTabSelect, conversation } = useAppSelector(
     (state) => state.conversation
   );
+
   const dispatch = useAppDispatch();
 
   const handleBackClick = () => {
@@ -29,27 +31,40 @@ export default function ConversationFileTabs() {
     dispatch(setFileSelectTab(tab));
   };
 
-  const getMediaFile = async (id: string, accessToken: string) => {
-    if (!oldestMediaFile) return;
+  const getMediaFile = async () => {
+    if (conversation && !isLastMediaFile) {
+      const session = await getSession();
+      if (!session?.accessToken) return;
+      const before =
+        conversation.mediaFiles.length !== 0
+          ? conversation.mediaFiles[
+              conversation.mediaFiles.length - 1
+            ].createdAt.toString()
+          : "";
 
-    const before = oldestMediaFile.createdAt.toString();
-    setIsLoading(true);
+      setIsLoading(true);
 
-    const response = await fetch(
-      `${GET_CONVERSATION_MEDIA_FILE}?id=${id}&before=${before}`,
-      {
-        headers: {
-          authorization: `Bearer ${accessToken}`,
-        },
+      const response = await fetch(
+        `${GET_CONVERSATION_MEDIA_FILE}?id=${conversation.id}&before=${before}`,
+        {
+          headers: {
+            authorization: `Bearer ${session.accessToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.length == 0) {
+          setIsLastMediaFile(true);
+        }
+
+        dispatch(addOldMediaFiles(data));
       }
-    );
 
-    if (response.ok) {
-      const data = await response.json();
-      dispatch(addOldMediaFiles(data));
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleScroll = async () => {
@@ -59,11 +74,8 @@ export default function ConversationFileTabs() {
         fileContainerRef.current.scrollHeight -
           fileContainerRef.current.clientHeight
       ) {
-        const session = await getSession();
-        if (!session?.accessToken || !conversation) return;
-
         if (fileTabSelect === "mediaFile") {
-          getMediaFile(conversation.id, session.accessToken);
+          getMediaFile();
         }
       }
     }
@@ -74,12 +86,20 @@ export default function ConversationFileTabs() {
       fileContainerRef.current.addEventListener("scroll", handleScroll);
     }
 
+    if (
+      conversation &&
+      conversation.mediaFiles.length < 30 &&
+      !isLastMediaFile
+    ) {
+      getMediaFile();
+    }
+
     return () => {
       if (fileContainerRef.current) {
         fileContainerRef.current.removeEventListener("scroll", handleScroll);
       }
     };
-  }, [oldestMediaFile]);
+  }, [conversation?.mediaFiles, isLastMediaFile]);
 
   return (
     <div

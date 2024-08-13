@@ -29,7 +29,7 @@ interface Props {
 
 export default function ConversationMessage({ messages }: Props) {
   const { data: session } = useSession();
-  const { conversation, focusMessage, oldestMessage } = useAppSelector(
+  const { conversation, focusMessage } = useAppSelector(
     (state) => state.conversation
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -55,21 +55,23 @@ export default function ConversationMessage({ messages }: Props) {
       } else {
         setShowToBottom(false);
       }
-      if (containerRef.current.scrollTop == 0 && oldestMessage) {
-        getOlderMessages(oldestMessage.createdAt);
+      if (containerRef.current.scrollTop == 0) {
+        getOlderMessages();
       }
     }
   };
 
   const getOlderMessages = async (
-    before: Date,
     to?: Date,
     focusMessage?: ConversationMessageType
   ) => {
-    if (isLoading || isFullMessage) return;
-    const prevMessage = oldestMessage;
+    if (isLoading || isFullMessage || !conversation) return;
+    
     const session = await getSession();
-    const beforeDate = before.toString();
+    if (!session?.accessToken) return;
+
+    const prevMessage = conversation.messages[0];
+    const beforeDate = prevMessage.createdAt.toString();
     const toDate = to ? to.toString() : "";
 
     const response = await fetch(
@@ -148,18 +150,14 @@ export default function ConversationMessage({ messages }: Props) {
       );
       if (isMessageLoaded) {
         setTimeout(() => {
-          messagesRef.current[focusMessage.id].scrollIntoView({
-            behavior: "smooth",
-          });
+          if (messagesRef.current[focusMessage.id]) {
+            messagesRef.current[focusMessage.id].scrollIntoView({
+              behavior: "smooth",
+            });
+          }
         }, 500);
       } else {
-        if (oldestMessage) {
-          getOlderMessages(
-            oldestMessage.createdAt,
-            focusMessage.createdAt,
-            focusMessage
-          );
-        }
+        getOlderMessages(focusMessage.createdAt, focusMessage);
       }
     }
   }, [focusMessage]);
@@ -169,7 +167,7 @@ export default function ConversationMessage({ messages }: Props) {
     return () => {
       containerRef.current?.removeEventListener("scroll", scrollCallback);
     };
-  }, [oldestMessage]);
+  }, [conversation?.messages, isFullMessage]);
 
   return (
     <Fragment>

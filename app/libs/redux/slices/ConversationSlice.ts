@@ -1,6 +1,5 @@
 import {
   ConversationBasicInfo,
-  ConversationFile,
   ConversationMessage,
 } from "@/app/shared/types/conversation";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -8,8 +7,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface ConversationState {
   conversation: ConversationBasicInfo | undefined;
   replyMessage: ConversationMessage | undefined | null;
-  oldestMessage: ConversationMessage | null | undefined;
-  oldestMediaFile: ConversationFile | null | undefined;
+  // oldestMessage: ConversationMessage | null | undefined;
+  // oldestMediaFile: ConversationFile | null | undefined;
   focusMessage:
     | ({
         clickedAt: number;
@@ -26,8 +25,8 @@ const initialState = {
   conversation: undefined,
   replyMessage: null,
   focusMessage: null,
-  oldestMessage: null,
-  oldestMediaFile: null,
+  // oldestMessage: null,
+  // oldestMediaFile: null,
   openInfo: true,
   openHeaderInfo: false,
   openPinMessage: false,
@@ -39,11 +38,14 @@ const conversationSlice = createSlice({
   name: "Conversation",
   initialState,
   reducers: {
-    setConversation(state, action: PayloadAction<ConversationBasicInfo>) {
-      state.conversation = action.payload;
-      state.oldestMessage = action.payload.messages[0];
-      state.oldestMediaFile =
-        action.payload.mediaFiles[action.payload.mediaFiles.length - 1];
+    setConversation(
+      state,
+      action: PayloadAction<ConversationBasicInfo>
+    ) {
+      state.conversation = { ...action.payload, mediaFiles: [] };
+      // state.oldestMessage = action.payload.messages[0];
+      // state.oldestMediaFile =
+      //   action.payload.mediaFiles[action.payload.mediaFiles.length - 1];
     },
     setMessages(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
@@ -88,15 +90,7 @@ const conversationSlice = createSlice({
             action.payload.fileType.startsWith("image") ||
             action.payload.fileType.startsWith("video")
           ) {
-            state.conversation.mediaFiles.unshift({
-              id: action.payload.id,
-              createdAt: action.payload.createdAt,
-              fileName: action.payload.fileName,
-              fileSecureURL: action.payload.fileSecureURL,
-              fileSize: action.payload.fileSize,
-              fileType: action.payload.fileType,
-              fileURL: action.payload.fileURL,
-            });
+            state.conversation.mediaFiles.unshift(action.payload);
           } else {
             //           state.conversation.files.push({
             // id: action.payload.id,
@@ -110,10 +104,10 @@ const conversationSlice = createSlice({
         }
       }
     },
-    addOldMediaFiles(state, action: PayloadAction<ConversationFile[]>) {
+    addOldMediaFiles(state, action: PayloadAction<ConversationMessage[]>) {
       if (state.conversation) {
         state.conversation.mediaFiles.push(...action.payload);
-        state.oldestMediaFile = action.payload[action.payload.length - 1];
+        // state.oldestMediaFile = action.payload[action.payload.length - 1];
       }
     },
     addOldMessage(
@@ -126,7 +120,7 @@ const conversationSlice = createSlice({
       const { messages, focusMessage } = action.payload;
       if (state.conversation) {
         state.conversation.messages.unshift(...messages);
-        state.oldestMessage = messages[0];
+        // state.oldestMessage = messages[0];
         if (focusMessage) {
           state.focusMessage = { ...focusMessage, clickedAt: Date.now() };
         }

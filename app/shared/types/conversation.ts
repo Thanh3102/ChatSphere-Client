@@ -9,9 +9,10 @@ export type ConversationBasicInfo = {
   users: UserBasicInfo[];
   messages: ConversationMessage[];
   pinMessages: ConversationMessage[];
-  mediaFiles: ConversationFile[];
+  mediaFiles: ConversationMessage[];
   emoji: string;
 };
+
 
 export type ConversationMessage = {
   id: string;
@@ -33,15 +34,15 @@ export type ConversationMessage = {
   sender: UserBasicInfo;
 };
 
-export type ConversationFile = {
-  id: string;
-  fileType: string;
-  fileName: string;
-  fileURL: string;
-  fileSecureURL: string;
-  fileSize: number;
-  createdAt: Date,
-};
+// export type ConversationFile = {
+//   id: string;
+//   fileType: string;
+//   fileName: string;
+//   fileURL: string;
+//   fileSecureURL: string;
+//   fileSize: number;
+//   createdAt: Date,
+// };
 
 export type ConversationResponseMessage = {
   id: string;
