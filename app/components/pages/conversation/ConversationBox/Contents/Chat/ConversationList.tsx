@@ -7,7 +7,7 @@ interface Props {
 
 export default function ConversationList({ conversations }: Props) {  
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden mt-2 max-w-full">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden mt-2 max-w-full no-scrollbar">
       {conversations.map((con) => (
         <ConversationListItem conversation={con} key={con.id} />
       ))}

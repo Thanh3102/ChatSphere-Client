@@ -1,15 +1,17 @@
 import { DateToString } from "@/app/shared/helpers/DateFormat";
 import { ConversationMessage } from "@/app/shared/types/conversation";
 import { Tooltip } from "@nextui-org/react";
-import Image from "next/image";
-import Link from "next/link";
+
 import { FaRegFileAlt } from "react-icons/fa";
 import MessageAction from "./MessageAction";
 import { Fragment } from "react";
-import { useAppDispatch } from "@/app/libs/hooks";
-import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import { GiPin } from "react-icons/gi";
 import { Emoji } from "emoji-picker-react";
+import TextMessage from "./MessageTypes/TextMessage";
+import NotificationMessage from "./MessageTypes/NotificationMessage";
+import FileMessage from "./MessageTypes/FileMessage";
+import EmojiMessage from "./MessageTypes/EmojiMessage";
+import VoiceMessage from "./MessageTypes/VoiceMessage";
 
 interface Props {
   isCurrentUser: boolean;
@@ -24,168 +26,21 @@ interface MessageTypeProps {
 }
 
 function MessageType({ message, isCurrentUser }: MessageTypeProps) {
-  const dispatch = useAppDispatch();
-
   switch (message.type) {
     case "text":
-      return (
-        <Tooltip
-          content={DateToString(message.createdAt)}
-          placement={isCurrentUser ? "left" : "right"}
-          closeDelay={0}
-        >
-          <div
-            className={`relative py-2 px-4 text-sm my-2 rounded-xl w-full min-w-0 break-words ${
-              isCurrentUser
-                ? "text-white bg-blue-500"
-                : "text-black bg-stone-100"
-            } `}
-          >
-            {message.isPin && (
-              <div className="absolute -top-2 -right-2 text-red-500 text-lg">
-                <GiPin />
-              </div>
-            )}
-            {message.body}
-          </div>
-        </Tooltip>
-      );
+      return <TextMessage message={message} isCurrentUser={isCurrentUser} />;
     case "notification":
-      switch (message.body) {
-        case "pin":
-          return (
-            <div
-              className={`py-2 px-4 text-xs my-2 rounded-xl w-fit min-w-0 break-words text-gray-500 font-medium`}
-            >
-              {`${
-                isCurrentUser ? "Bạn" : message.sender.name
-              } đã ghim một tin nhắn.`}
-              <span
-                className="text-blue-500 hover:cursor-pointer hover:underline ml-1"
-                onClick={() => {
-                  dispatch(setOpenPinMessage(true));
-                }}
-              >
-                Xem tất cả
-              </span>
-            </div>
-          );
-        case "unPin":
-          return (
-            <div
-              className={`py-2 px-4 text-xs my-2 rounded-xl w-fit min-w-0 break-words text-gray-500 font-medium`}
-            >
-              {`${
-                isCurrentUser ? "Bạn" : message.sender.name
-              } đã bỏ ghim một tin nhắn.`}
-              <span
-                className="text-blue-500 hover:cursor-pointer hover:underline ml-1"
-                onClick={() => {
-                  dispatch(setOpenPinMessage(true));
-                }}
-              >
-                Xem tất cả
-              </span>
-            </div>
-          );
-        default:
-          return (
-            <div
-              className={`py-2 px-4 text-sm my-2 rounded-xl w-fit min-w-0 break-words`}
-            >
-              Notification mesage: Type: {message.body}
-            </div>
-          );
-      }
-    case "file":
-      if (message.fileType.startsWith("image")) {
-        return (
-          <Link href={message.fileURL} target="_blank">
-            {message.isPin && (
-              <div className="absolute -top-2 -right-2 text-red-500 text-lg">
-                <GiPin />
-              </div>
-            )}
-            <Tooltip
-              content={DateToString(message.createdAt)}
-              placement={isCurrentUser ? "left" : "right"}
-            >
-              <Image
-                src={message.fileURL}
-                alt=""
-                width={200}
-                height={200}
-                className="rounded-xl my-2"
-              />
-            </Tooltip>
-          </Link>
-        );
-      }
-
-      if (message.fileType.startsWith("video")) {
-        return (
-          <Tooltip
-            content={DateToString(message.createdAt)}
-            placement={isCurrentUser ? "left" : "right"}
-            closeDelay={0}
-          >
-            <div className="max-w-[300px] min-w-[100px] mt-2 relative">
-              {message.isPin && (
-                <div className="absolute -top-2 -right-2 text-red-500 text-lg">
-                  <GiPin />
-                </div>
-              )}
-              <video
-                src={message.fileURL}
-                controls
-                muted
-                className="rounded-xl"
-              />
-            </div>
-          </Tooltip>
-        );
-      }
-
       return (
-        <Link href={message.fileURL} target="_blank">
-          <Tooltip
-            content={DateToString(message.createdAt)}
-            placement={isCurrentUser ? "left" : "right"}
-          >
-            <div className="h-14 py-2 px-3 bg-gray-300 rounded-xl flex items-center gap-1 relative my-2">
-              {message.isPin && (
-                <div className="absolute -top-2 -right-2 text-red-500 text-lg">
-                  <GiPin />
-                </div>
-              )}
-              <div className="rounded-full p-2 bg-white">
-                <FaRegFileAlt className="text-base" />
-              </div>
-              <p className="w-full line-clamp-2 text-xs font-semibold">
-                {message.fileName}
-              </p>
-            </div>
-          </Tooltip>
-        </Link>
+        <NotificationMessage message={message} isCurrentUser={isCurrentUser} />
       );
+    case "file":
+      return <FileMessage message={message} isCurrentUser={isCurrentUser} />;
+
+    case "voice":
+      return <VoiceMessage message={message} isCurrentUser={isCurrentUser} />;
 
     case "emoji":
-      return (
-        <Tooltip
-          content={DateToString(message.createdAt)}
-          placement={isCurrentUser ? "left" : "right"}
-          closeDelay={0}
-        >
-          <div className={`relative my-2`}>
-            {message.isPin && (
-              <div className="absolute -top-2 -right-2 text-red-500 text-lg">
-                <GiPin />
-              </div>
-            )}
-            <Emoji unified={message.body} size={30} />
-          </div>
-        </Tooltip>
-      );
+      return <EmojiMessage message={message} isCurrentUser={isCurrentUser} />;
     default:
       <span className="text-sm text-gray-100 p-2 rounded-xl border-1 border-gray-100 italic">
         Không thể hiện thị nội dung

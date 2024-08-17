@@ -52,34 +52,53 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
   const dispatch = useAppDispatch();
   const fileAttachRef = useRef<HTMLInputElement>(null);
 
+  const createConversation = async (): Promise<{ id: string }> => {
+    const response = await fetch(CREATE_CONVERSATION_ROUTE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${session?.accessToken}`,
+      },
+      body: JSON.stringify({
+        members: members,
+      }),
+    });
+
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error(await response.json());
+    }
+  };
+
   const sendMessage = async () => {
     setMessage("");
     setFiles([]);
     dispatch(setReplyMessage(null));
 
     if (conversationId) {
-      await fetchMessage();
-      await fetchFileAttach();
+      await fetchMessage(conversationId);
+      await fetchFileAttach(conversationId);
     } else {
-      const response = await fetch(CREATE_CONVERSATION_ROUTE, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${session?.accessToken}`,
-        },
-        body: JSON.stringify({
-          members: members,
-          message: message,
-        }),
-      });
-      if (response.ok) {
-        const res = await response.json();
-        router.push(`/conversations/${res.conversationId}`);
+      try {
+        const { id } = await createConversation();
+        await fetchMessage(id);
+        await fetchFileAttach(id);
+      } catch (error) {
+        toast.error(
+          "Đã xảy ra lỗi khi tạo cuộc trò chuyện mới. Vui lòng thử lại",
+          { position: "top-right" }
+        );
       }
     }
   };
 
-  const sendEmoji = async () => {
+  const sendEmoji = async (id: string | undefined) => {
+    let conversationId = id;
+    if (!conversationId) {
+      const { id } = await createConversation();
+      conversationId = id;
+    }
     const response = await fetch(SEND_MESSAGE_ROUTE, {
       method: "POST",
       headers: {
@@ -99,7 +118,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
     }
   };
 
-  const fetchMessage = async () => {
+  const fetchMessage = async (id: string) => {
     if (message) {
       const response = await fetch(SEND_MESSAGE_ROUTE, {
         method: "POST",
@@ -108,25 +127,24 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
           authorization: `Bearer ${session?.accessToken}`,
         },
         body: JSON.stringify({
-          conversationId: conversationId,
+          conversationId: id,
           message: message,
           replyMessageId: replyMessage?.id,
         }),
       });
-      if (response.ok) {
-        if (pathName !== `/conversations/${conversationId}`)
-          router.push(`/conversations/${conversationId}`);
+      if (response.ok && pathName !== `/conversations/${id}`) {
+        router.push(`/conversations/${id}`);
       }
     }
   };
 
-  const fetchFileAttach = async () => {
-    if (files.length !== 0 && conversationId) {
+  const fetchFileAttach = async (id: string) => {
+    if (files.length !== 0 && id) {
       for (let file of files) {
         const uploadFilePromise = new Promise(async (resolve, reject) => {
           const formData = new FormData();
           formData.append("attachFile", file);
-          formData.append("conversationId", conversationId);
+          formData.append("conversationId", id);
 
           const response = await fetch(UPLOAD_FILE_ATTACH_ROUTE, {
             method: "POST",
@@ -138,8 +156,8 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
 
           if (response.ok) {
             resolve("Gửi file thành công");
-            if (pathName !== `/conversations/${conversationId}`)
-              router.push(`/conversations/${conversationId}`);
+            if (pathName !== `/conversations/${id}`)
+              router.push(`/conversations/${id}`);
           } else {
             reject("Đã xảy ra lỗi");
           }
@@ -249,7 +267,12 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
             </div>
           </Tooltip>
 
-          <VoiceRecorder stream={stream} onClose={handleCloseVoiceRecord} />
+          <VoiceRecorder
+            stream={stream}
+            onClose={handleCloseVoiceRecord}
+            conversationId={conversationId}
+            createConversation={createConversation}
+          />
         </div>
       ) : (
         <div className="py-4 flex">
@@ -328,6 +351,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                 </PopoverContent>
               </Popover>
             </div>
+
             <input
               type="file"
               name=""
@@ -339,6 +363,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
               multiple={true}
             />
           </div>
+
           {message || files.length !== 0 ? (
             <div className="flex flex-col justify-end">
               <Tooltip content="Nhấn để gửi" showArrow placement="top">
@@ -363,7 +388,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
               >
                 <div
                   className="mx-2 p-2 rounded-full hover:bg-gray-100 hover:cursor-pointer"
-                  onClick={sendEmoji}
+                  onClick={() => sendEmoji(conversationId)}
                 >
                   <Emoji unified={emoji} size={25} />
                 </div>

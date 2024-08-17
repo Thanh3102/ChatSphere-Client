@@ -29,6 +29,7 @@ export type ConversationMessage = {
   fileURL: string;
   fileSecureURL: string;
   fileSize: number;
+  voiceDuration: number;
   responseMessage: ConversationMessage;
   seen: UserBasicInfo[];
   sender: UserBasicInfo;
@@ -59,5 +60,5 @@ export type UserConversation = {
   groupName: string;
   groupImage: string;
   users: UserBasicInfo[];
-  lastMessage: ConversationMessage;
+  lastMessage?: ConversationMessage;
 };
