@@ -1,17 +1,14 @@
+import { Fragment } from "react";
 import { DateToString } from "@/app/shared/helpers/DateFormat";
 import { ConversationMessage } from "@/app/shared/types/conversation";
 import { Tooltip } from "@nextui-org/react";
-
-import { FaRegFileAlt } from "react-icons/fa";
 import MessageAction from "./MessageAction";
-import { Fragment } from "react";
-import { GiPin } from "react-icons/gi";
-import { Emoji } from "emoji-picker-react";
 import TextMessage from "./MessageTypes/TextMessage";
 import NotificationMessage from "./MessageTypes/NotificationMessage";
 import FileMessage from "./MessageTypes/FileMessage";
 import EmojiMessage from "./MessageTypes/EmojiMessage";
 import VoiceMessage from "./MessageTypes/VoiceMessage";
+import RenderIf from "../../ui/RenderIf";
 
 interface Props {
   isCurrentUser: boolean;
@@ -73,21 +70,31 @@ export default function MessageContent({
             isCurrentUser ? "justify-end" : ""
           }`}
         >
-          {showAction &&
-            actionPlacement === "left" &&
-            message.type !== "notification" && (
-              <MessageAction message={message} isCurrentUser={isCurrentUser} />
-            )}
+          <RenderIf
+            condition={
+              showAction &&
+              actionPlacement === "left" &&
+              message.type !== "notification"
+            }
+          >
+            <MessageAction message={message} isCurrentUser={isCurrentUser} />
+          </RenderIf>
+
           <MessageType message={message} isCurrentUser={isCurrentUser} />
-          {showAction &&
-            actionPlacement === "right" &&
-            message.type !== "notification" && (
-              <MessageAction
-                message={message}
-                isCurrentUser={isCurrentUser}
-                reverse
-              />
-            )}
+          
+          <RenderIf
+            condition={
+              showAction &&
+              actionPlacement === "right" &&
+              message.type !== "notification"
+            }
+          >
+            <MessageAction
+              message={message}
+              isCurrentUser={isCurrentUser}
+              reverse
+            />
+          </RenderIf>
         </div>
       )}
     </Fragment>

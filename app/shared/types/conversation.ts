@@ -30,6 +30,8 @@ export type ConversationMessage = {
   fileSecureURL: string;
   fileSize: number;
   voiceDuration: number;
+  notificationAction: string;
+  notificationTarget: string;
   responseMessage: ConversationMessage;
   seen: UserBasicInfo[];
   sender: UserBasicInfo;

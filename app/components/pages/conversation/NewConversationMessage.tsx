@@ -5,8 +5,7 @@ import { Avatar, AvatarGroup } from "@nextui-org/react";
 import { useAppSelector } from "@/app/libs/hooks";
 import { FaRegUser } from "react-icons/fa6";
 import { UserBasicInfo } from "@/app/shared/types/user";
-
-
+import RenderIf from "../../ui/RenderIf";
 
 export default function NewConversationMessage() {
   const { members } = useAppSelector((state) => state.newConversation);
@@ -24,7 +23,7 @@ export default function NewConversationMessage() {
       <Fragment>
         <div className="flex-grow-[1] flex flex-col">
           <div className="flex flex-col items-center flex-1 mt-8">
-            {members.length > 1 ? (
+            <RenderIf condition={members.length > 1}>
               <AvatarGroup max={2} total={members.length - 2}>
                 {members.map((member) => (
                   <Avatar
@@ -36,7 +35,8 @@ export default function NewConversationMessage() {
                   />
                 ))}
               </AvatarGroup>
-            ) : (
+            </RenderIf>
+            <RenderIf condition={members.length === 1}>
               <Avatar
                 name={members[0].name}
                 key={members[0].id}
@@ -44,7 +44,8 @@ export default function NewConversationMessage() {
                 fallback={<FaRegUser className="text-xl" />}
                 src=""
               />
-            )}
+            </RenderIf>
+
             <span>{joinName(members)}</span>
           </div>
         </div>
@@ -53,5 +54,9 @@ export default function NewConversationMessage() {
     );
   }
 
-  return <Fragment><div className="flex-1"></div></Fragment>;
+  return (
+    <Fragment>
+      <div className="flex-1"></div>
+    </Fragment>
+  );
 }

@@ -14,6 +14,8 @@ import ConversationHeaderInfo from "./ConversationHeaderInfo";
 import toast from "react-hot-toast";
 import { useRouter } from "next/router";
 import { getSocket } from "@/socket";
+import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "../../ui/RenderIf";
 
 export default function ConversationHeader() {
   const { conversation, openInfo, openHeaderInfo } = useAppSelector(
@@ -24,33 +26,26 @@ export default function ConversationHeader() {
   const info = getConversationInfo(conversation, session?.user.id);
 
   const handleVideoCall = () => {
-    if (!conversation) {
-      return;
-    }
+    if (!conversation) return;
 
     const socket = getSocket();
 
-    // Create New Room - Get Room ID
-    socket.emit("startCall", {
+    socket.emit(SOCKET_EVENT.START_CALL, {
       type: "video",
       conversationId: conversation.id,
       userId: session?.user.id,
     });
-
-    // const uuid = uuidV4();
-    // const url = `${process.env.NEXT_PUBLIC_CLIENT_BASE_URL}/room/${uuid}?conversationId=${conversation.id}&type=video&callUserId=${session?.user.id}`;
-    // window.open(url, "_blank");
   };
 
   useEffect(() => {
     const socket = getSocket();
-    socket.on("roomCreated", ({ roomId, type }) => {
+    socket.on(SOCKET_EVENT.ROOM_CREATED, ({ roomId, type }) => {
       const url = `${process.env.NEXT_PUBLIC_CLIENT_BASE_URL}/room/${roomId}?type=${type}`;
       window.open(url, "_blank");
     });
 
     return () => {
-      socket.off("roomCreated");
+      socket.off(SOCKET_EVENT.ROOM_CREATED);
     };
   }, []);
 
@@ -100,13 +95,17 @@ export default function ConversationHeader() {
           </Tooltip>
         </div>
       </div>
-      {conversation && (
-        <Modal isOpen={openHeaderInfo} backdrop="blur" hideCloseButton>
+      <RenderIf condition={conversation !== undefined}>
+        <Modal
+          isOpen={openHeaderInfo}
+          onOpenChange={(open) => dispatch(setOpenHeaderInfo(open))}
+          backdrop="blur"
+        >
           <ModalContent>
             <ConversationHeaderInfo isGroup={conversation?.isGroup} />
           </ModalContent>
         </Modal>
-      )}
+      </RenderIf>
     </Fragment>
   );
 }

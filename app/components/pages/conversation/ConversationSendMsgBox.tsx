@@ -16,11 +16,13 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { BiSolidLike } from "react-icons/bi";
 import { ImAttachment } from "react-icons/im";
 import { IoCloseCircle, IoSend } from "react-icons/io5";
 import ReplyMessage from "./ReplyMessage";
-import { setReplyMessage } from "@/app/libs/redux/slices/ConversationSlice";
+import {
+  changeEmoji,
+  setReplyMessage,
+} from "@/app/libs/redux/slices/ConversationSlice";
 import { FaFaceGrinWide, FaMicrophone } from "react-icons/fa6";
 import EmojiPicker, {
   Emoji,
@@ -30,6 +32,9 @@ import EmojiPicker, {
 } from "emoji-picker-react";
 import ConversationFileItem from "./ConversationAttachFileItem";
 import VoiceRecorder from "./VoiceRecorder";
+import { categories_VN } from "@/app/libs/ReactEmojiPicker";
+import { getSocket } from "@/socket";
+import { SOCKET_EVENT } from "@/app/shared/enums";
 
 interface Props {
   conversationId?: string;
@@ -37,19 +42,19 @@ interface Props {
 
 export default function ConversationSendMsgBox({ conversationId }: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { data: session } = useSession();
-  const { members } = useAppSelector((state) => state.newConversation);
-  const { replyMessage, conversation } = useAppSelector(
-    (state) => state.conversation
-  );
   const [message, setMessage] = useState<string>("");
   const [emoji, setEmoji] = useState<string>("1f44d");
   const [files, setFiles] = useState<File[]>([]);
   const [stream, setStream] = useState<MediaStream>();
   const [openVoiceRecord, setOpenVoiceRecord] = useState<boolean>(false);
+  const { replyMessage, conversation } = useAppSelector(
+    (state) => state.conversation
+  );
+  const { data: session } = useSession();
+  const { members } = useAppSelector((state) => state.newConversation);
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const pathName = usePathname();
-  const dispatch = useAppDispatch();
   const fileAttachRef = useRef<HTMLInputElement>(null);
 
   const createConversation = async (): Promise<{ id: string }> => {
@@ -251,6 +256,21 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
     }
   }, [conversation?.emoji]);
 
+  useEffect(() => {
+    if (conversation) {
+      const socket = getSocket();
+      socket.on(
+        SOCKET_EVENT.CHANGE_CONVERSATION_EMOJI,
+        (data: { emoji: string }) => {
+          dispatch(changeEmoji(data.emoji));
+        }
+      );
+      return () => {
+        socket.off(SOCKET_EVENT.CHANGE_CONVERSATION_EMOJI);
+      };
+    }
+  }, []);
+
   return (
     <Fragment>
       {replyMessage && (
@@ -347,6 +367,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                     lazyLoadEmojis
                     skinTonesDisabled
                     autoFocusSearch
+                    categories={categories_VN}
                   />
                 </PopoverContent>
               </Popover>

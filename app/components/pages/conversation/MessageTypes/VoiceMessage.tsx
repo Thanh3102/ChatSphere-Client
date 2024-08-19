@@ -137,11 +137,11 @@ const VoiceMessage = ({ message, isCurrentUser }: Props) => {
           </div>
         </Tooltip>
       </RenderIf>
-      <RenderIf condition={!blob ? true : false && !isLoading}>
+      {/* <RenderIf condition={!blob ? true : false && !isLoading}>
         <span className="italic text-gray-500 p-2 border-gray-500 border-1 rounded-lg">
           Không thể hiển thị nội dung
         </span>
-      </RenderIf>
+      </RenderIf> */}
     </>
   );
 };

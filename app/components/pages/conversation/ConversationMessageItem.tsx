@@ -5,6 +5,7 @@ import { useAppDispatch } from "@/app/libs/hooks";
 import { setReplyMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import ReplyContent from "./ReplyContent";
 import { forwardRef } from "react";
+import RenderIf from "../../ui/RenderIf";
 
 interface Props {
   message: ConversationMessage;
@@ -36,21 +37,25 @@ const ConversationMessageItem = forwardRef<HTMLDivElement, Props>(
                 : ""
             } min-w-0 max-w-[calc(100%-40px)]`}
           >
-            {!isCurrentUser && message.type !== "notification" && (
+            <RenderIf
+              condition={!isCurrentUser && message.type !== "notification"}
+            >
               <Tooltip content={message.sender.name}>
                 <div className="min-w-fit">
                   <Avatar showFallback src={message.sender.image ?? ""} />
                 </div>
               </Tooltip>
-            )}
+            </RenderIf>
+
             <div
               className={`flex flex-col max-w-full ${
                 isCurrentUser ? "items-end" : ""
               }`}
             >
-              {message.responseMessage && !message.recall && (
+              <RenderIf condition={message.responseMessage && !message.recall}>
                 <ReplyContent message={message} currentUserId={currentUserId} />
-              )}
+              </RenderIf>
+
               <MessageContent
                 message={message}
                 isCurrentUser={isCurrentUser}

@@ -7,10 +7,16 @@ import { getSession } from "next-auth/react";
 import { GET_CONVERSATION_INFO_ROUTE } from "@/app/shared/constants/ApiRoute";
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
 import { ConversationBasicInfo } from "@/app/shared/types/conversation";
-import { setConversation } from "@/app/libs/redux/slices/ConversationSlice";
+import {
+  changeGroupImage,
+  changeGroupName,
+  setConversation,
+} from "@/app/libs/redux/slices/ConversationSlice";
 import { Spinner } from "@nextui-org/react";
 import ConversationDetail from "@/app/components/pages/conversation/ConversationDetail";
 import ConversationFileTabs from "@/app/components/pages/conversation/ConversationFileTabs";
+import { getSocket } from "@/socket";
+import { SOCKET_EVENT } from "@/app/shared/enums";
 
 interface Props {
   params: { id: string };
@@ -23,6 +29,7 @@ export default function Page({ params }: Props) {
     (state) => state.conversation
   );
   const dispatch = useAppDispatch();
+
   const getConversationInfo = async () => {
     setLoading(true);
     const session = await getSession();
@@ -43,6 +50,25 @@ export default function Page({ params }: Props) {
 
   useEffect(() => {
     getConversationInfo();
+    const socket = getSocket();
+    socket.on(
+      SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_NAME,
+      (newName: string) => {
+        dispatch(changeGroupName(newName));
+      }
+    );
+
+    socket.on(
+      SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_IMAGE,
+      (newImage: string) => {
+        dispatch(changeGroupImage(newImage));
+      }
+    );
+
+    return () => {
+      socket.off(SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_NAME);
+      socket.off(SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_IMAGE);
+    };
   }, []);
 
   return (

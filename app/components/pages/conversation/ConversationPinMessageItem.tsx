@@ -17,7 +17,7 @@ import {
   setOpenPinMessage,
 } from "@/app/libs/redux/slices/ConversationSlice";
 import { getSocket } from "@/socket";
-import { UN_PIN_MESSAGE_EVENT } from "@/app/shared/constants/SocketEvent";
+import { SOCKET_EVENT } from "@/app/shared/enums";
 
 interface Props {
   message: ConversationMessage;
@@ -30,7 +30,7 @@ export default function ConversationPinMessageItem({ message }: Props) {
   const handleUnPin = () => {
     setIsMoreOpen(false);
     const socket = getSocket();
-    socket.emit(UN_PIN_MESSAGE_EVENT, { messageId: message.id });
+    socket.emit(SOCKET_EVENT.UN_PIN_MESSAGE, { messageId: message.id });
   };
 
   const handleSeeMessage = (message: ConversationMessage) => {

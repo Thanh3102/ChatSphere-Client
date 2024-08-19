@@ -35,7 +35,7 @@ export default function ConversationDetail() {
       <div className="h-full overflow-y-auto flex-[0.5] bg-white rounded-lg px-2 min-w-0">
         <div className="py-10 flex justify-center items-center flex-col gap-4">
           <Avatar showFallback src={info.avatar ?? ""} className="scale-150" />
-          <span className="font-semibold text-xl mt-2">{info.name}</span>
+          <span className="font-semibold text-xl text-center mt-2">{info.name}</span>
         </div>
         <div className="mt-2">
           {tabs.map((tab, index) => (

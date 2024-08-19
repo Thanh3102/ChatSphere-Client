@@ -18,6 +18,9 @@ export const GET_CONVERSATION_FILE = `${BASE_URL}/api/message/getConversationFil
 
 export const CHECK_CONVERSATION_EXISTS_ROUTE = `${BASE_URL}/api/message/checkConversationExists`;
 export const SEND_VOICE_CLIP_ROUTE = `${BASE_URL}/api/message/sendVoiceClip`;
+export const UPDATE_CONVERSATION_SETTING_ROUTE = `${BASE_URL}/api/message/updateConversationSetting`;
+
+
 
 export const GET_USER_BY_ID_ROUTE = `${BASE_URL}/api/user/getById`;
 export const UPDATE_AVATAR_ROUTE = `${BASE_URL}/api/user/updateAvatar`;

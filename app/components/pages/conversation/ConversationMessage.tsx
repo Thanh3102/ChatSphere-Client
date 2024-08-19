@@ -11,17 +11,13 @@ import {
   setFocusMessage,
 } from "@/app/libs/redux/slices/ConversationSlice";
 import { getSocket } from "@/socket";
-import {
-  NEW_MESSAGE_EVENT,
-  PIN_MESSAGE_EVENT,
-  RECALL_MESSAGE_EVENT,
-  UN_PIN_MESSAGE_EVENT,
-} from "@/app/shared/constants/SocketEvent";
 import { ConversationMessage as ConversationMessageType } from "@/app/shared/types/conversation";
 import { Spinner } from "@nextui-org/react";
 import { GET_CONVERSATION_OLDER_MESSAGES_ROUTE } from "@/app/shared/constants/ApiRoute";
-import toast from "react-hot-toast";
 import { FaArrowDown } from "react-icons/fa6";
+import toast from "react-hot-toast";
+import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "../../ui/RenderIf";
 
 interface Props {
   messages: ConversationMessageType[];
@@ -66,11 +62,6 @@ export default function ConversationMessage({ messages }: Props) {
     to?: Date,
     focusMessage?: ConversationMessageType
   ) => {
-    console.log("-------------");
-    console.log("Last message", conversation?.messages[0]);
-    console.log("Is full", isFullMessage);
-    console.log("Is Loading", isLoading);
-
     if (isLoading || isFullMessage || !conversation) return;
 
     const session = await getSession();
@@ -80,8 +71,8 @@ export default function ConversationMessage({ messages }: Props) {
     const beforeDate = prevMessage.createdAt.toString();
     const toDate = to ? to.toString() : "";
 
-    console.log("Get data");
     setIsLoading(true);
+
     const response = await fetch(
       `${GET_CONVERSATION_OLDER_MESSAGES_ROUTE}?id=${conversation?.id}&before=${beforeDate}&to=${toDate}`,
       {
@@ -117,26 +108,35 @@ export default function ConversationMessage({ messages }: Props) {
   useEffect(() => {
     const io = getSocket();
 
-    io.on(NEW_MESSAGE_EVENT, async (newMessage: ConversationMessageType) => {
-      await dispatch(addNewMessage(newMessage));
-      if (
-        newMessage.sender.id === session?.user.id &&
-        newMessage.type !== "notification"
-      ) {
-        scrollToBottom();
+    io.on(
+      SOCKET_EVENT.NEW_MESSAGE,
+      async (newMessage: ConversationMessageType) => {
+        await dispatch(addNewMessage(newMessage));
+        if (
+          newMessage.sender.id === session?.user.id &&
+          newMessage.type !== "notification"
+        ) {
+          scrollToBottom();
+        }
       }
-    });
-
-    io.on(PIN_MESSAGE_EVENT, async (newPinMessage: ConversationMessageType) => {
-      await dispatch(addNewPinMessage(newPinMessage));
-    });
-
-    io.on(UN_PIN_MESSAGE_EVENT, async (pinMessage: ConversationMessageType) => {
-      await dispatch(removePinMessage(pinMessage));
-    });
+    );
 
     io.on(
-      RECALL_MESSAGE_EVENT,
+      SOCKET_EVENT.PIN_MESSAGE,
+      async (newPinMessage: ConversationMessageType) => {
+        await dispatch(addNewPinMessage(newPinMessage));
+      }
+    );
+
+    io.on(
+      SOCKET_EVENT.UN_PIN_MESSAGE,
+      async (pinMessage: ConversationMessageType) => {
+        await dispatch(removePinMessage(pinMessage));
+      }
+    );
+
+    io.on(
+      SOCKET_EVENT.RECALL_MESSAGE,
       async (conversationId: string, messageId: string) => {
         if (conversation && conversation.id === conversationId) {
           dispatch(recallMessage(messageId));
@@ -147,10 +147,10 @@ export default function ConversationMessage({ messages }: Props) {
     scrollToBottom();
 
     return () => {
-      io.off(NEW_MESSAGE_EVENT);
-      io.off(PIN_MESSAGE_EVENT);
-      io.off(UN_PIN_MESSAGE_EVENT);
-      io.off(RECALL_MESSAGE_EVENT);
+      io.off(SOCKET_EVENT.NEW_MESSAGE);
+      io.off(SOCKET_EVENT.PIN_MESSAGE);
+      io.off(SOCKET_EVENT.UN_PIN_MESSAGE);
+      io.off(SOCKET_EVENT.RECALL_MESSAGE);
       dispatch(setFocusMessage(null));
     };
   }, []);
@@ -187,7 +187,7 @@ export default function ConversationMessage({ messages }: Props) {
         className="flex-1 px-3 min-h-0 overflow-y-auto overflow-x-hidden relative"
         ref={containerRef}
       >
-        {showToBottom && (
+        <RenderIf condition={showToBottom}>
           <div className="fixed bottom-[15%] left-1/2 z-20">
             <div
               className="rounded-full p-2 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
@@ -196,12 +196,14 @@ export default function ConversationMessage({ messages }: Props) {
               <FaArrowDown />
             </div>
           </div>
-        )}
-        {isLoading && (
+        </RenderIf>
+
+        <RenderIf condition={isLoading}>
           <div className="h-10 flex justify-center items-center">
             <Spinner />
           </div>
-        )}
+        </RenderIf>
+
         {messages.map((mess) => (
           <ConversationMessageItem
             ref={(el: any) => (messagesRef.current[mess.id] = el)}

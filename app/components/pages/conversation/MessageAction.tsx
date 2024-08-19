@@ -22,7 +22,8 @@ import { RECALL_MESSAGE_ROUTE } from "@/app/shared/constants/ApiRoute";
 import { getSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { getSocket } from "@/socket";
-import { UN_PIN_MESSAGE_EVENT } from "@/app/shared/constants/SocketEvent";
+import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "../../ui/RenderIf";
 
 interface Props {
   message: ConversationMessage;
@@ -80,11 +81,9 @@ export default function MessageAction({
 
   const handleUnPin = async () => {
     setIsOpenMore(false);
-    // onOpenMore();
     const socket = getSocket();
-    socket.emit(UN_PIN_MESSAGE_EVENT, { messageId: message.id });
+    socket.emit(SOCKET_EVENT.UN_PIN_MESSAGE, { messageId: message.id });
     onCloseMore();
-
   };
 
   return (
@@ -109,7 +108,7 @@ export default function MessageAction({
             </div>
           </Tooltip>
           <PopoverContent className="py-2">
-            {isCurrentUser ? (
+            <RenderIf condition={isCurrentUser}>
               <div
                 className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
                 onClick={() => {
@@ -120,14 +119,15 @@ export default function MessageAction({
               >
                 Gỡ
               </div>
-            ) : null}
+            </RenderIf>
+
             <div
               className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
               onClick={handleTranfer}
             >
               Chuyển tiếp
             </div>
-            {!message.isPin ? (
+            <RenderIf condition={!message.isPin}>
               <div
                 className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
                 onClick={() => {
@@ -138,14 +138,16 @@ export default function MessageAction({
               >
                 Ghim
               </div>
-            ) : (
+            </RenderIf>
+
+            <RenderIf condition={message.isPin}>
               <div
                 className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
                 onClick={handleUnPin}
               >
                 Bỏ ghim
               </div>
-            )}
+            </RenderIf>
           </PopoverContent>
         </Popover>
         <Tooltip content="Trả lời" showArrow>

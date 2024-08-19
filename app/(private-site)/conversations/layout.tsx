@@ -1,21 +1,18 @@
 "use client";
 import Navbar from "../../components/layouts/conversation/navbar/Navbar";
-import { Fragment, ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, ReactNode, useEffect, useState } from "react";
 import { getSocket } from "@/socket";
 import ContentBox from "../../components/pages/conversation/ConversationBox";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import CallComing from "@/app/components/pages/conversation/CallComing";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  Spinner,
-} from "@nextui-org/react";
-import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
-import ConversationPinMessageList from "@/app/components/pages/conversation/ConversationPinMessageList";
+import { Spinner } from "@nextui-org/react";
+
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
+import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "@/app/components/ui/RenderIf";
+import PinMessageModal from "@/app/components/pages/conversation/PinMessageModal";
+import { setOpenPinMessage } from "@/app/libs/redux/slices/ConversationSlice";
 interface Props {
   children: ReactNode;
 }
@@ -30,10 +27,10 @@ interface CallInfo {
 }
 
 export default function ConversationLayout({ children }: Props) {
+  const dispatch = useAppDispatch();
   const { data: session, status } = useSession();
   const [isReceiveCall, setIsReceiveCall] = useState<boolean>(false);
   const [callInfo, setCallInfo] = useState<CallInfo>();
-  const dispatch = useAppDispatch();
   const { openPinMessage, conversation } = useAppSelector(
     (state) => state.conversation
   );
@@ -41,76 +38,60 @@ export default function ConversationLayout({ children }: Props) {
   useEffect(() => {
     if (session?.user) {
       const socket = getSocket();
-      socket.emit("setUserId", session?.user.id);
-      socket.on("inviteCall", (callInfo) => {
+      socket.emit(SOCKET_EVENT.SET_USER_ID, session?.user.id);
+      socket.on(SOCKET_EVENT.INVITE_CALL, (callInfo) => {
         setCallInfo(callInfo);
         setIsReceiveCall(true);
       });
-      socket.on("error", ({ message }) => {
+      socket.on(SOCKET_EVENT.ERROR, ({ message }) => {
         toast.error(message);
       });
 
       return () => {
-        socket.off("inviteCall");
-        socket.off("error");
+        socket.off(SOCKET_EVENT.INVITE_CALL);
+        socket.off(SOCKET_EVENT.ERROR);
       };
     }
   }, [status]);
 
-  if (status === "loading" || !session?.user) {
-    return (
-      <div className="flex gap-4 h-full w-full justify-center items-center absolute top-0 bottom-0 right-0 left-0">
-        <Spinner />
-        <span className="text-xl font-bold">
-          Đang tải, vui lòng đợi giây lát...
-        </span>
-      </div>
-    );
-  }
-
   return (
-    <Fragment>
-      {isReceiveCall && callInfo && (
-        <CallComing
-          close={() => setIsReceiveCall(false)}
-          from={callInfo.from}
-          room={callInfo.room}
-          type={callInfo.type}
-        />
-      )}
-      <div className="bg-gray-200 h-screen py-4 overflow-hidden">
-        <div className="px-5 flex -mx-2 h-full gap-4">
-          <Navbar />
-          <ContentBox />
-          <div className="h-full flex-[3] min-w-0">{children}</div>
+    <>
+      <RenderIf condition={status === "loading" || !session?.user}>
+        <div className="flex gap-4 h-full w-full justify-center items-center absolute top-0 bottom-0 right-0 left-0">
+          <Spinner />
+          <span className="text-xl font-bold">
+            Đang tải, vui lòng đợi giây lát...
+          </span>
         </div>
-      </div>
-      
-      <Modal
-        isOpen={openPinMessage}
-        onOpenChange={(open) => dispatch(setOpenPinMessage(open))}
-        size="2xl"
-        classNames={{
-          closeButton: "top-[0.75rem]",
-        }}
-      >
-        <ModalContent>
-          <ModalHeader className="flex justify-center items-center">
-            Tin nhắn đã ghim
-          </ModalHeader>
-          {conversation ? (
-            <ModalBody>
-              <ConversationPinMessageList
-                pinMessages={conversation.pinMessages}
+      </RenderIf>
+
+      <RenderIf condition={!(status === "loading" || !session?.user)}>
+        <Fragment>
+          <RenderIf condition={isReceiveCall}>
+            {callInfo && (
+              <CallComing
+                close={() => setIsReceiveCall(false)}
+                from={callInfo.from}
+                room={callInfo.room}
+                type={callInfo.type}
               />
-            </ModalBody>
-          ) : (
-            <div className="h-full flex items-center justify-center w-full">
-              <Spinner />
+            )}
+          </RenderIf>
+
+          <div className="bg-gray-200 h-screen py-4 overflow-hidden">
+            <div className="px-5 flex -mx-2 h-full gap-4">
+              <Navbar />
+              <ContentBox />
+              <div className="h-full flex-[3] min-w-0">{children}</div>
             </div>
-          )}
-        </ModalContent>
-      </Modal>
-    </Fragment>
+          </div>
+
+          <PinMessageModal
+            isOpen={openPinMessage}
+            onOpenChange={(open) => dispatch(setOpenPinMessage(open))}
+          />
+        </Fragment>
+      </RenderIf>
+    </>
   );
 }

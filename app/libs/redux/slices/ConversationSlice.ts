@@ -179,6 +179,21 @@ const conversationSlice = createSlice({
         }
       }
     },
+    changeEmoji(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        state.conversation.emoji = action.payload;
+      }
+    },
+    changeGroupName(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        state.conversation.groupName = action.payload;
+      }
+    },
+    changeGroupImage(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        state.conversation.groupImage = action.payload;
+      }
+    },
   },
 });
 
@@ -199,5 +214,8 @@ export const {
   addNewPinMessage,
   removePinMessage,
   recallMessage,
+  changeEmoji,
+  changeGroupName,
+  changeGroupImage,
 } = conversationSlice.actions;
 export default conversationSlice.reducer;

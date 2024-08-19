@@ -50,6 +50,7 @@ export default function ConversationListItem({ conversation }: Props) {
   }, []);
 
   const info = getConversationInfo(conversation, session?.user.id);
+
   let content = <></>;
   if (conversation.lastMessage) {
     switch (conversation.lastMessage.type) {
@@ -57,6 +58,7 @@ export default function ConversationListItem({ conversation }: Props) {
         content = <span>{conversation.lastMessage.body}</span>;
         break;
       case "file":
+      case "voice":
         content = <span className="italic">{"File đính kèm"}</span>;
         break;
       case "emoji":
