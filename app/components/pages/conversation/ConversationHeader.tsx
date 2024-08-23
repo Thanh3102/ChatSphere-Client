@@ -100,6 +100,10 @@ export default function ConversationHeader() {
           isOpen={openHeaderInfo}
           onOpenChange={(open) => dispatch(setOpenHeaderInfo(open))}
           backdrop="blur"
+          classNames={{
+            closeButton: "top-[0.75rem]",
+            header: "flex items-center justify-center",
+          }}
         >
           <ModalContent>
             <ConversationHeaderInfo isGroup={conversation?.isGroup} />

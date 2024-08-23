@@ -6,12 +6,21 @@ export type ConversationBasicInfo = {
   isGroup: boolean;
   groupName: string;
   groupImage: string;
-  users: UserBasicInfo[];
+  members: ConversationMember[];
   messages: ConversationMessage[];
   pinMessages: ConversationMessage[];
   mediaFiles: ConversationMessage[];
   files: ConversationMessage[];
   emoji: string;
+};
+
+export type ConversationMember = {
+  id: string;
+  user: UserBasicInfo;
+  addedUser: UserBasicInfo;
+  joinedAt: Date;
+  role: string;
+  nickName?: string;
 };
 
 export type ConversationMessage = {

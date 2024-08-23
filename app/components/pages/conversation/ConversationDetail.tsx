@@ -8,6 +8,8 @@ import ConversationInfo from "./ConversationInfo";
 import ConversationSetting from "./ConversationSetting";
 import ConversationFileSelect from "./ConversationFileSelect";
 import { Fragment } from "react";
+import RenderIf from "../../ui/RenderIf";
+import ConversationMembers from "./ConversationMembers";
 
 export default function ConversationDetail() {
   const { conversation } = useAppSelector((state) => state.conversation);
@@ -17,16 +19,30 @@ export default function ConversationDetail() {
       label: "Thông tin về đoạn chat",
       content: <ConversationInfo />,
       isOpen: false,
+      requiredConversationIsGroup: false,
     },
     {
       label: "Tùy chỉnh đoạn chat",
       content: <ConversationSetting />,
       isOpen: false,
+      requiredConversationIsGroup: false,
     },
     {
       label: "File phương tiện, File",
       content: <ConversationFileSelect />,
       isOpen: false,
+      requiredConversationIsGroup: false,
+    },
+    {
+      label: "Thành viên trong đoạn chat",
+      content: (
+        <ConversationMembers
+          members={conversation?.members ?? []}
+          showAddMember
+        />
+      ),
+      isOpen: false,
+      requiredConversationIsGroup: true,
     },
   ]);
   const info = getConversationInfo(conversation, session?.user.id);
@@ -35,24 +51,33 @@ export default function ConversationDetail() {
       <div className="h-full overflow-y-auto flex-[0.5] bg-white rounded-lg px-2 min-w-0">
         <div className="py-10 flex justify-center items-center flex-col gap-4">
           <Avatar showFallback src={info.avatar ?? ""} className="scale-150" />
-          <span className="font-semibold text-xl text-center mt-2">{info.name}</span>
+          <span className="font-semibold text-xl text-center mt-2">
+            {info.name}
+          </span>
         </div>
         <div className="mt-2">
           {tabs.map((tab, index) => (
-            <div className="" key={`conversationInfoTab-${index}`}>
-              <div
-                className="py-3 px-2 flex justify-between items-center rounded-md hover:bg-gray-100 hover:cursor-pointer"
-                onClick={() => {
-                  setTabs((tabs) => {
-                    tabs[index].isOpen = !tabs[index].isOpen;
-                  });
-                }}
-              >
-                <span className="text-base font-semibold">{tab.label}</span>
-                {tab.isOpen ? <FaChevronDown /> : <FaChevronRight />}
+            <RenderIf
+              condition={
+                tab.requiredConversationIsGroup ? conversation?.isGroup : true
+              }
+              key={index}
+            >
+              <div className="" key={`conversationInfoTab-${index}`}>
+                <div
+                  className="py-3 px-2 flex justify-between items-center rounded-md hover:bg-gray-100 hover:cursor-pointer"
+                  onClick={() => {
+                    setTabs((tabs) => {
+                      tabs[index].isOpen = !tabs[index].isOpen;
+                    });
+                  }}
+                >
+                  <span className="text-base font-semibold">{tab.label}</span>
+                  {tab.isOpen ? <FaChevronDown /> : <FaChevronRight />}
+                </div>
+                {tab.isOpen && tab.content}
               </div>
-              {tab.isOpen && tab.content}
-            </div>
+            </RenderIf>
           ))}
         </div>
       </div>

@@ -81,7 +81,7 @@ export default function MessageContent({
           </RenderIf>
 
           <MessageType message={message} isCurrentUser={isCurrentUser} />
-          
+
           <RenderIf
             condition={
               showAction &&

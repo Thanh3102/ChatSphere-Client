@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 interface Props {
-  condition: boolean | null | undefined;
+  condition: boolean | Promise<boolean> | null | undefined;
   children?: ReactNode;
 }
 

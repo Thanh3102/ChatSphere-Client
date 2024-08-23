@@ -28,6 +28,7 @@ export default function ConversationMessage({ messages }: Props) {
   const { conversation, focusMessage } = useAppSelector(
     (state) => state.conversation
   );
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFullMessage, setIsFullMessage] = useState<boolean>(false);
   const [showToBottom, setShowToBottom] = useState<boolean>(false);

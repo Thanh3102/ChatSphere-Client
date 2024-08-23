@@ -1,3 +1,4 @@
+import ConversationGroupInfo from "./ConversationGroupInfo";
 import ConversationUserInfo from "./ConversationUserInfo";
 
 interface Props {
@@ -6,7 +7,7 @@ interface Props {
 
 export default function ConversationHeaderInfo({isGroup}:Props) {
     if(isGroup){
-        return <div>Group member info</div>
+        return <ConversationGroupInfo/>
     }
     return <ConversationUserInfo/>
 }

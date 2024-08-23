@@ -1,6 +1,7 @@
 import { useAppDispatch } from "@/app/libs/hooks";
 import { setFocusMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import { ConversationMessage } from "@/app/shared/types/conversation";
+import { Emoji } from "emoji-picker-react";
 import { Fragment } from "react";
 import { GrAttachment } from "react-icons/gr";
 import { ImReply } from "react-icons/im";
@@ -57,11 +58,13 @@ export default function ReplyContent({ message, currentUserId }: Props) {
           </span>
         ) : message.responseMessage.type === "text" ? (
           <span className="text-sm">{message.responseMessage.body}</span>
-        ) : (
+        ) : message.responseMessage.type === "text" ? (
           <span className="italic text-sm flex items-center gap-2">
             <GrAttachment />
             File đính kèm
           </span>
+        ) : (
+          <Emoji unified={message.responseMessage.body} size={16} />
         )}
       </div>
     </Fragment>

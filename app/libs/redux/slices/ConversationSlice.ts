@@ -1,5 +1,6 @@
 import {
   ConversationBasicInfo,
+  ConversationMember,
   ConversationMessage,
 } from "@/app/shared/types/conversation";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -14,6 +15,7 @@ interface ConversationState {
     | null;
   openInfo: boolean;
   openHeaderInfo: boolean;
+  openAddMember: boolean;
   openPinMessage: boolean;
   openFileList: boolean;
   fileTabSelect: "file" | "mediaFile";
@@ -25,6 +27,7 @@ const initialState = {
   focusMessage: null,
   openInfo: true,
   openHeaderInfo: false,
+  openAddMember: false,
   openPinMessage: false,
   openFileList: false,
   fileTabSelect: "mediaFile",
@@ -66,6 +69,9 @@ const conversationSlice = createSlice({
     },
     setFileSelectTab(state, action: PayloadAction<"mediaFile" | "file">) {
       state.fileTabSelect = action.payload;
+    },
+    setOpenAddMember(state, action: PayloadAction<boolean>) {
+      state.openAddMember = action.payload;
     },
     setOpenInfo(state, action: PayloadAction<boolean>) {
       state.openInfo = action.payload;
@@ -194,6 +200,51 @@ const conversationSlice = createSlice({
         state.conversation.groupImage = action.payload;
       }
     },
+    addNewMember(state, action: PayloadAction<ConversationMember>) {
+      if (state.conversation) {
+        state.conversation.members.push(action.payload);
+      }
+    },
+    removeMember(state, action: PayloadAction<ConversationMember>) {
+      if (state.conversation) {
+        const index = state.conversation.members.findIndex(
+          (member) => member.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.conversation.members.splice(index, 1);
+        }
+      }
+    },
+    promoteMember(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        const index = state.conversation.members.findIndex(
+          (member) => member.id === action.payload
+        );
+        if (index !== -1) {
+          state.conversation.members[index].role = "admin";
+        }
+      }
+    },
+    downgradeMember(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        const index = state.conversation.members.findIndex(
+          (member) => member.id === action.payload
+        );
+        if (index !== -1) {
+          state.conversation.members[index].role = "member";
+        }
+      }
+    },
+    memberLeft(state, action: PayloadAction<string>) {
+      if (state.conversation) {
+        const index = state.conversation.members.findIndex(
+          (member) => member.id === action.payload
+        );
+        if (index !== -1) {
+          state.conversation.members.splice(index, 1);
+        }
+      }
+    },
   },
 });
 
@@ -205,6 +256,7 @@ export const {
   setFileSelectTab,
   setOpenFileList,
   setOpenInfo,
+  setOpenAddMember,
   setOpenHeaderInfo,
   setOpenPinMessage,
   addNewMessage,
@@ -217,5 +269,10 @@ export const {
   changeEmoji,
   changeGroupName,
   changeGroupImage,
+  addNewMember,
+  removeMember,
+  promoteMember,
+  downgradeMember,
+  memberLeft
 } = conversationSlice.actions;
 export default conversationSlice.reducer;

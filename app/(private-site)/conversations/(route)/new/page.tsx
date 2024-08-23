@@ -82,9 +82,7 @@ export default function NewConservationPage() {
           <SendMessageBox conversationId={conversationId} />
         </Fragment>
       ) : (
-        <Fragment>
-          <NewConversationMessage />
-        </Fragment>
+        <NewConversationMessage />
       )}
     </div>
   );

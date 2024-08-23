@@ -8,15 +8,23 @@ import { GET_CONVERSATION_INFO_ROUTE } from "@/app/shared/constants/ApiRoute";
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
 import { ConversationBasicInfo } from "@/app/shared/types/conversation";
 import {
+  addNewMember,
   changeGroupImage,
   changeGroupName,
+  downgradeMember,
+  memberLeft,
+  promoteMember,
+  removeMember,
   setConversation,
+  setOpenAddMember,
 } from "@/app/libs/redux/slices/ConversationSlice";
 import { Spinner } from "@nextui-org/react";
 import ConversationDetail from "@/app/components/pages/conversation/ConversationDetail";
 import ConversationFileTabs from "@/app/components/pages/conversation/ConversationFileTabs";
 import { getSocket } from "@/socket";
 import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "@/app/components/ui/RenderIf";
+import ConversationAddMemberModal from "@/app/components/pages/conversation/ConversationAddMemberModal";
 
 interface Props {
   params: { id: string };
@@ -25,9 +33,8 @@ interface Props {
 export default function Page({ params }: Props) {
   const conversationId = params.id;
   const [loading, setLoading] = useState<boolean>(false);
-  const { conversation, openInfo, openFileList } = useAppSelector(
-    (state) => state.conversation
-  );
+  const { conversation, openInfo, openFileList, openAddMember } =
+    useAppSelector((state) => state.conversation);
   const dispatch = useAppDispatch();
 
   const getConversationInfo = async () => {
@@ -65,9 +72,33 @@ export default function Page({ params }: Props) {
       }
     );
 
+    socket.on(SOCKET_EVENT.ADD_NEW_MEMBER, ({ member }) => {
+      dispatch(addNewMember(member));
+    });
+
+    socket.on(SOCKET_EVENT.REMOVE_MEMBER, ({ member }) => {
+      dispatch(removeMember(member));
+    });
+
+    socket.on(SOCKET_EVENT.MEMBER_ADMIN_PROMOTE, ({ memberId }) => {
+      dispatch(promoteMember(memberId));
+    });
+
+    socket.on(SOCKET_EVENT.MEMBER_ADMIN_PROMOTE, ({ memberId }) => {
+      dispatch(downgradeMember(memberId));
+    });
+
+    socket.on(SOCKET_EVENT.MEMBER_LEFT, ({ memberId }) => {
+      dispatch(memberLeft(memberId));
+    });
+
     return () => {
       socket.off(SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_NAME);
       socket.off(SOCKET_EVENT.CHANGE_CONVERSATION_GROUP_IMAGE);
+      socket.off(SOCKET_EVENT.ADD_NEW_MEMBER);
+      socket.off(SOCKET_EVENT.REMOVE_MEMBER);
+      socket.off(SOCKET_EVENT.MEMBER_ADMIN_PROMOTE);
+      socket.off(SOCKET_EVENT.MEMBER_ADMIN_DOWNGRADE);
     };
   }, []);
 
@@ -87,11 +118,18 @@ export default function Page({ params }: Props) {
                 <SendMessageBox conversationId={params.id} />
               </>
             ) : (
-              <div className="flex-1">Không thể xem đoạn chat</div>
+              <div className="flex-1 flex items-center justify-center">
+                <span>Không thể hiển thị đoạn chat</span>
+              </div>
             )}
           </div>
           {openInfo &&
             (openFileList ? <ConversationFileTabs /> : <ConversationDetail />)}
+
+          <ConversationAddMemberModal
+            isOpen={openAddMember}
+            onOpenChange={(open) => dispatch(setOpenAddMember(open))}
+          />
         </>
       )}
     </div>

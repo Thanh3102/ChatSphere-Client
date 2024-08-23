@@ -15,6 +15,12 @@ export const CHECK_CONVERSATION_EXISTS_ROUTE = `${BASE_URL}/api/conversation/che
 export const GET_CONVERSATION_FILE = `${BASE_URL}/api/conversation/getConversationFile`;
 export const UPDATE_CONVERSATION_SETTING_ROUTE = `${BASE_URL}/api/conversation/updateConversationSetting`;
 export const GET_CONVERSATION_INFO_ROUTE = `${BASE_URL}/api/conversation/getConversationInfo`;
+export const CONVERSATION_ADD_NEW_MEMBER_ROUTE = `${BASE_URL}/api/conversation/addNewMember`;
+export const CONVERSATION_REMOVE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/removeMember`;
+export const CONVERSATION_PROMOTE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/promoteMember`;
+export const CONVERSATION_DOWNGRADE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/downgradeMember`;
+export const CONVERSATION_LEFT_GROUP_ROUTE = `${BASE_URL}/api/conversation/leftGroup`;
+
 
 // Message Route
 export const SEND_MESSAGE_ROUTE = `${BASE_URL}/api/message/sendMessage`;
