@@ -35,6 +35,7 @@ import VoiceRecorder from "./VoiceRecorder";
 import { categories_VN } from "@/app/libs/ReactEmojiPicker";
 import { getSocket } from "@/socket";
 import { SOCKET_EVENT } from "@/app/shared/enums";
+import RenderIf from "../../ui/RenderIf";
 
 interface Props {
   conversationId?: string;
@@ -56,6 +57,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
   const router = useRouter();
   const pathName = usePathname();
   const fileAttachRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const createConversation = async (): Promise<{ id: string }> => {
     const response = await fetch(CREATE_CONVERSATION_ROUTE, {
@@ -181,7 +183,14 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
   };
 
   const handleOnKeyDown = (e: any) => {
-    if (e.key === "Enter") {
+    if (
+      e.key === "Enter" &&
+      !e.ctrlKey &&
+      !e.shiftKey &&
+      !e.altKey &&
+      !e.metaKey
+    ) {
+      e.preventDefault();
       sendMessage();
     }
   };
@@ -271,12 +280,23 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
     }
   }, []);
 
+  useEffect(() => {
+    if (messageInputRef.current) {
+      messageInputRef.current.style.height = "auto";
+      messageInputRef.current.style.height = `${Math.min(
+        messageInputRef.current.scrollHeight,
+        120
+      )}px`;
+    }
+  }, [message]);
+
   return (
     <Fragment>
       {replyMessage && (
         <ReplyMessage message={replyMessage} userId={session?.user.id} />
       )}
-      {openVoiceRecord ? (
+
+      <RenderIf condition={openVoiceRecord}>
         <div className="py-4 flex items-center">
           <Tooltip content="Đóng" showArrow placement="top">
             <div
@@ -294,7 +314,9 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
             createConversation={createConversation}
           />
         </div>
-      ) : (
+      </RenderIf>
+
+      <RenderIf condition={!openVoiceRecord}>
         <div className="py-4 flex">
           <div className="flex flex-col justify-end">
             <div className="flex justify-end mx-1">
@@ -333,14 +355,15 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
               </div>
             )}
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
+            <div className="flex items-center gap-2 h-full">
+              <textarea
+                ref={messageInputRef}
                 placeholder="Aa"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleOnKeyDown}
-                className="py-2 bg-gray-200 outline-none  w-full"
+                rows={1}
+                className=" py-2 bg-gray-200 outline-none w-full resize-none overflow-y-auto max-h-40 text-sm"
               />
               <Popover
                 isOpen={isOpen}
@@ -375,8 +398,6 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
 
             <input
               type="file"
-              name=""
-              id=""
               className="hidden"
               ref={fileAttachRef}
               onChange={handleFileChange}
@@ -385,7 +406,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
             />
           </div>
 
-          {message || files.length !== 0 ? (
+          <RenderIf condition={message || files.length !== 0}>
             <div className="flex flex-col justify-end">
               <Tooltip content="Nhấn để gửi" showArrow placement="top">
                 <div
@@ -396,7 +417,9 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                 </div>
               </Tooltip>
             </div>
-          ) : (
+          </RenderIf>
+
+          <RenderIf condition={!message && files.length === 0}>
             <div className=" flex flex-col justify-end">
               <Tooltip
                 content={
@@ -415,9 +438,9 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
                 </div>
               </Tooltip>
             </div>
-          )}
+          </RenderIf>
         </div>
-      )}
+      </RenderIf>
     </Fragment>
   );
 }

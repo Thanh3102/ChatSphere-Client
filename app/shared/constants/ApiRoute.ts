@@ -7,6 +7,9 @@ export const REFRESH_TOKEN_ROUTE = `${BASE_URL}/api/auth/refresh`;
 
 // User route
 export const SEARCH_USER_BY_NAME_ROUTE = `${BASE_URL}/api/user/search/name`;
+export const CHECK_EMAIL_VERIFY = `${BASE_URL}/api/user/checkEmailVerify`;
+export const UPDATE_USER_PROFILE = `${BASE_URL}/api/user/update`;
+export const CHANGE_PASSWORD_ROUTE = `${BASE_URL}/api/user/changePassword`;
 
 // Conversation Route
 export const CREATE_CONVERSATION_ROUTE = `${BASE_URL}/api/conversation/createConversation`;
@@ -20,7 +23,6 @@ export const CONVERSATION_REMOVE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/re
 export const CONVERSATION_PROMOTE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/promoteMember`;
 export const CONVERSATION_DOWNGRADE_MEMBER_ROUTE = `${BASE_URL}/api/conversation/downgradeMember`;
 export const CONVERSATION_LEFT_GROUP_ROUTE = `${BASE_URL}/api/conversation/leftGroup`;
-
 
 // Message Route
 export const SEND_MESSAGE_ROUTE = `${BASE_URL}/api/message/sendMessage`;

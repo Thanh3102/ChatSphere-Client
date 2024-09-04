@@ -1,25 +1,25 @@
 "use client";
 
 import InfomationTab from "@/app/components/pages/profile/InfomationTab";
-import { UserBasicInfo } from "@/app/shared/types/user";
+import { UserDetailInfo } from "@/app/shared/types/user";
 import { Tab, Tabs } from "@nextui-org/react";
+import ChangePasswordForm from "../../forms/ChangePasswordForm";
 
 interface Props {
-  user: UserBasicInfo;
+  user: UserDetailInfo;
 }
 
 const TabContainer = ({ user }: Props) => {
   let tabs = [
     {
-      id: "infomation",
+      id: "userInfomation",
       label: "Thông tin cá nhân",
       content: <InfomationTab user={user} />,
     },
     {
-      id: "security",
-      label: "Bảo mật",
-      content:
-        "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+      id: "userSecurity",
+      label: "Đổi mật khẩu",
+      content: <ChangePasswordForm />,
     },
   ];
   return (

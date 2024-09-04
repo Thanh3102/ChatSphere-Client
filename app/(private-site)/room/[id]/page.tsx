@@ -1,8 +1,11 @@
 "use client";
+import VideoStream from "@/app/components/pages/room/VideoStream";
+import VideoStreamContainer from "@/app/components/pages/room/VideoStreamContainer";
+import RenderIf from "@/app/components/ui/RenderIf";
 import { UserBasicInfo } from "@/app/shared/types/user";
 import { getSocket } from "@/socket";
 import { Button, Spinner, Tooltip } from "@nextui-org/react";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -14,70 +17,55 @@ import {
 import { IoMdExit } from "react-icons/io";
 import Peer, { SignalData } from "simple-peer";
 
-const VideoStream = ({
-  data,
-}: {
-  data: { stream: MediaStream; user: UserBasicInfo };
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current && data.stream) {
-      videoRef.current.srcObject = data.stream;
-      toast(`${data.user.name} đã tham gia phòng`);
-    }
-  }, []);
-
-  return (
-    <div className="">
-      <video ref={videoRef} autoPlay playsInline width={400} height={400} />
-      <p>User {data.user.name}</p>
-    </div>
-  );
-};
-
 interface Props {
   params: {
     id: string;
   };
 }
 
+type OfferPayload = {
+  socketId: string;
+  sender: UserBasicInfo;
+  signal: SignalData;
+};
+
+type AnswerPayload = {
+  signal: SignalData;
+  socketId: string;
+  sender: UserBasicInfo;
+};
+
+type UserJoinedPayload = {
+  socketId: string;
+  user: UserBasicInfo;
+};
+
+type UserLeftPayload = { user: UserBasicInfo };
+
 const Page = ({ params: { id } }: Props) => {
+  const { status } = useSession();
   const [stream, setStream] = useState<MediaStream>();
-  // const [streams, setStreams] = useState<
-  //   { user: UserBasicInfo; stream: MediaStream }[]
-  // >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isOpenCamera, setIsOpenCamera] = useState<boolean>(true);
   const [isOpenVoice, setIsOpenVoice] = useState<boolean>(true);
-
-  const { data: session, status } = useSession();
   const myVideoRef = useRef<HTMLVideoElement>(null);
   const socketRef = useRef<any>(null);
-  const peersRef = useRef<{
-    [key: string]: { user: UserBasicInfo; ref: Peer.Instance };
-  }>({});
 
-  const remoteStreamsRef = useRef<{
-    [key: string]: { user: UserBasicInfo; stream: MediaStream };
-  }>({});
+  const peersRef = useRef<
+    Record<string, { user: UserBasicInfo; ref: Peer.Instance }>
+  >({});
 
-  console.log("Peers", peersRef.current);
-  // console.log("Streams", streams);
-  console.log("Remote Streams", remoteStreamsRef);
+  const remoteStreamsRef = useRef<
+    Record<string, { user: UserBasicInfo; stream: MediaStream }>
+  >({});
 
-  const gotStream = (stream: MediaStream) => {
+  const gotStream = async (stream: MediaStream) => {
     setStream(stream);
 
+    const session = await getSession();
     if (!session) return;
 
-    const handleOffer = (payload: {
-      socketId: string;
-      sender: UserBasicInfo;
-      signal: SignalData;
-    }) => {
-      console.log(`[HandleOffer] Receive a offer from ${payload.sender.name}`);
-
+    const handleOffer = (payload: OfferPayload) => {
       const { socketId, sender, signal } = payload;
 
       const peer = new Peer({
@@ -87,7 +75,6 @@ const Page = ({ params: { id } }: Props) => {
       });
 
       peer.on("signal", (signal) => {
-        console.log("[HandleOffer] Answer offer to " + sender.name);
         socketRef.current.emit("answer", {
           socketId: socketId,
           signal: signal,
@@ -113,33 +100,15 @@ const Page = ({ params: { id } }: Props) => {
       });
 
       peer.signal(signal);
-
-      // peersRef.current[sender.id] = { user: sender, ref: peer };
     };
 
-    const handleAnswer = (payload: {
-      signal: SignalData;
-      socketId: string;
-      sender: UserBasicInfo;
-    }) => {
+    const handleAnswer = (payload: AnswerPayload) => {
       const { sender, signal } = payload;
-      console.log(`[Answer Listener] Get answer from ${sender.name}`);
-
-      console.log(
-        "[Answer Listener] Update peer signal of ",
-        peersRef.current[sender.id].user.name
-      );
-      console.log("[Answer Listener] Peer info:", peersRef.current[sender.id]);
-      console.log("[Answer Listener] Signal to update", signal);
       peersRef.current[sender.id].ref.signal(signal);
     };
 
-    const handleUserJoined = (payload: {
-      socketId: string;
-      user: UserBasicInfo;
-    }) => {
+    const handleUserJoined = (payload: UserJoinedPayload) => {
       const { socketId, user } = payload;
-      console.log(`[Handle User Joined] ${user.name} join room`);
 
       const peer = new Peer({
         initiator: true,
@@ -148,7 +117,6 @@ const Page = ({ params: { id } }: Props) => {
       });
 
       peer.on("signal", (signal) => {
-        console.log(`[Handle User Joined] Send offer to ${user.name}`);
         socketRef.current.emit("offer", {
           socketId: socketId,
           signal: signal,
@@ -156,8 +124,6 @@ const Page = ({ params: { id } }: Props) => {
       });
 
       peer.on("stream", (stream) => {
-        console.log("[Handle User join] Get stream from " + user.name);
-        // setStreams((streams) => [...streams, { user: user, stream: stream }]);
         remoteStreamsRef.current[payload.user.id] = {
           user: user,
           stream: stream,
@@ -171,9 +137,8 @@ const Page = ({ params: { id } }: Props) => {
       peersRef.current[user.id] = { user: user, ref: peer };
     };
 
-    const handleUserLeft = (payload: { user: UserBasicInfo }) => {
+    const handleUserLeft = (payload: UserLeftPayload) => {
       const { user } = payload;
-      console.log(`[User Left] ${payload.user.name} đã rời phòng`);
       if (peersRef.current[user.id]) {
         peersRef.current[user.id].ref.destroy();
         delete peersRef.current[user.id];
@@ -184,7 +149,7 @@ const Page = ({ params: { id } }: Props) => {
       }
 
       toast(`${payload.user.name} đã rời khỏi phòng`, {
-        position: "top-center",
+        position: "bottom-right",
       });
     };
 
@@ -240,6 +205,8 @@ const Page = ({ params: { id } }: Props) => {
     }
   };
 
+
+
   useEffect(() => {
     if (status === "authenticated") {
       setIsLoading(false);
@@ -264,59 +231,59 @@ const Page = ({ params: { id } }: Props) => {
   useEffect(() => {}, [remoteStreamsRef.current]);
 
   return (
-    <Fragment>
-      {isLoading ? (
+    <div className="h-screen">
+      <RenderIf condition={isLoading}>
         <Spinner />
-      ) : (
-        <Fragment>
-          <div className="">
-            <p>Other people</p>
-            <div className="flex flex-wrap gap-4">
-              {/* {streams.map((stream, index) => (
-                <VideoStream data={stream} key={index} />
-              ))} */}
-              {Object.keys(remoteStreamsRef.current).map((key) => (
-                <VideoStream data={remoteStreamsRef.current[key]} key={key} />
-              ))}
-            </div>
+      </RenderIf>
+
+      <RenderIf condition={!isLoading}>
+        <RenderIf
+          condition={Object.keys(remoteStreamsRef.current).length !== 0}
+        >
+          <VideoStreamContainer data={remoteStreamsRef.current}/>
+        </RenderIf>
+
+        <RenderIf condition={Object.keys(remoteStreamsRef.current).length == 0}>
+          <Spinner />
+          <span>Đang chờ</span>
+        </RenderIf>
+
+        <div className="absolute bottom-0 right-0">
+          <video
+            ref={myVideoRef}
+            autoPlay
+            playsInline
+            muted
+            width={200}
+            height={200}
+          />
+        </div>
+        <div className="absolute bottom-20 w-full items-center z-10">
+          <div className="gap-8 flex justify-center items-center">
+            <Tooltip placement="top" content="Bật/Tắt camera" showArrow>
+              <Button isIconOnly onClick={handleCamera} size="lg">
+                {isOpenCamera ? <BsCameraVideo /> : <BsCameraVideoOff />}
+              </Button>
+            </Tooltip>
+            <Tooltip placement="top" content="Bật/Tắt micro" showArrow>
+              <Button isIconOnly onClick={handleVoice} size="lg">
+                {isOpenVoice ? <BsMic /> : <BsMicMute />}
+              </Button>
+            </Tooltip>
+            <Tooltip placement="top" content="Rời khỏi phòng" showArrow>
+              <Button
+                isIconOnly
+                onClick={() => window.close()}
+                color="danger"
+                size="lg"
+              >
+                <IoMdExit />
+              </Button>
+            </Tooltip>
           </div>
-          <div className="absolute bottom-0 right-0">
-            <video
-              ref={myVideoRef}
-              autoPlay
-              playsInline
-              muted
-              width={200}
-              height={200}
-            />
-          </div>
-          <div className="absolute bottom-20 w-full items-center z-10">
-            <div className="gap-8 flex justify-center items-center">
-              <Tooltip placement="top" content="Bật/Tắt camera" showArrow>
-                <Button isIconOnly onClick={handleCamera} size="lg">
-                  {isOpenCamera ? <BsCameraVideo /> : <BsCameraVideoOff />}
-                </Button>
-              </Tooltip>
-              <Tooltip placement="top" content="Bật/Tắt micro" showArrow>
-                <Button isIconOnly onClick={handleVoice} size="lg">
-                  {isOpenVoice ? <BsMic /> : <BsMicMute />}
-                </Button>
-              </Tooltip>
-              <Tooltip placement="top" content="Rời khỏi phòng" showArrow>
-                <Button
-                  isIconOnly
-                  onClick={() => window.close()}
-                  color="danger"
-                  size="lg"
-                >
-                  <IoMdExit />
-                </Button>
-              </Tooltip>
-            </div>
-          </div>
-        </Fragment>
-      )}
-    </Fragment>
+        </div>
+      </RenderIf>
+    </div>
   );
 };
 

@@ -7,7 +7,7 @@ const getUserData = async () => {
   const session = await getServerSession(authOption);
   if (session) {
     const res = await fetch(
-      `${GET_USER_BY_ID_ROUTE}?id=${session.user.id}&detail=true`,
+      `${GET_USER_BY_ID_ROUTE}?id=${session.user.id}&getDetail=true`,
       {
         headers: {
           authorization: `Bearer ${session.accessToken}`,

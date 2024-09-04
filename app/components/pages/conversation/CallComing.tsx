@@ -10,7 +10,7 @@ interface Props {
   room: string;
   close: () => void;
 }
-const CallComing = ({ close, room, type }: Props) => {
+const CallComing = ({ close, room, type, from }: Props) => {
   const acceptCall = async () => {
     const socket = getSocket();
 
@@ -25,7 +25,7 @@ const CallComing = ({ close, room, type }: Props) => {
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-[rgba(0,0,0,0.5)] z-20">
       <div className="flex flex-col justify-center bg-white rounded-lg p-4">
-        <span>Bạn nhận được cuộc gọi từ USERNAME</span>
+        <span>Bạn nhận được cuộc gọi từ {from.name}</span>
         <div className="mt-4 flex items-center gap-4 justify-center">
           <Button color="danger" onClick={() => close()}>
             Từ chối

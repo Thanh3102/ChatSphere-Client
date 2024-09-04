@@ -6,8 +6,8 @@ import Link from "next/link";
 const Page = () => {
   return (
     <Fragment>
-      <div className="flex justify-center items-center w-full h-full min-h-screen">
-        <div className="bg-white p-5 rounded-lg shadow-md min-w-[500px]">
+      <div className="flex justify-center items-center w-full h-full min-h-screen bg-gray-100">
+        <div className="bg-white p-5 rounded-lg shadow-large w-[600px]">
           <div className="text-center">
             <h1 className="font-bold text-2xl">Tạo tài khoản</h1>
             <p>

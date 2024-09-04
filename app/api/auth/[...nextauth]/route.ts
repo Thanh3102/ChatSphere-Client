@@ -1,4 +1,7 @@
-import { REFRESH_TOKEN_ROUTE, SIGNIN_ROUTE } from "@/app/shared/constants/ApiRoute";
+import {
+  REFRESH_TOKEN_ROUTE,
+  SIGNIN_ROUTE,
+} from "@/app/shared/constants/ApiRoute";
 import { NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import NextAuth from "next-auth/next";
@@ -6,16 +9,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 async function refreshToken(token: JWT) {
   console.log("[NextAuth] Refresh new access token");
-  const response = await fetch(
-    REFRESH_TOKEN_ROUTE,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Refresh ${token.refreshToken}`,
-      },
-    }
-  ).then((res) => res.json());
+  const response = await fetch(REFRESH_TOKEN_ROUTE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      authorization: `Refresh ${token.refreshToken}`,
+    },
+  }).then((res) => res.json());
   console.log("[NextAuth] New token response :", response);
 
   if (response.accessToken) {
@@ -25,13 +25,14 @@ async function refreshToken(token: JWT) {
       expiresIn: response.expiresIn,
     };
   } else {
-    return {
-      ...token,
-      accessToken: null,
-      refreshToken: null,
-      user: null,
-      error: "[NextAuth] Invalid Refresh Token",
-    };
+    // return {
+    //   ...token,
+    //   accessToken: null,
+    //   refreshToken: null,
+    //   user: null,
+    //   error: "[NextAuth] Invalid Refresh Token",
+    // };
+    return undefined;
   }
 }
 
@@ -102,6 +103,8 @@ export const authOption: NextAuthOptions = {
         session.accessToken = token.accessToken;
         session.refreshToken = token.refreshToken;
         session.error = token.error;
+      } else {
+        session.terminate = true;
       }
       return session;
     },

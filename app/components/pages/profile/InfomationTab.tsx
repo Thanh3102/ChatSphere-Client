@@ -10,13 +10,13 @@ import EditProfileForm from "../../forms/EditProfileForm";
 import { ChangeEvent, Fragment, useRef, useState } from "react";
 import Image from "next/image";
 import { EMPTY_IMAGE } from "@/app/shared/constants/ImageSource";
-import { UserBasicInfo } from "@/app/shared/types/user";
+import { UserDetailInfo } from "@/app/shared/types/user";
 import { getSession } from "next-auth/react";
 import { UPDATE_AVATAR_ROUTE } from "@/app/shared/constants/ApiRoute";
 import toast from "react-hot-toast";
 
 interface Props {
-  user: UserBasicInfo;
+  user: UserDetailInfo;
 }
 
 const InfomationTab = ({ user }: Props) => {
@@ -93,6 +93,7 @@ const InfomationTab = ({ user }: Props) => {
               onClick={() => {
                 setIsReadOnly(false);
               }}
+              isDisabled={!isReadOnly}
             >
               Chỉnh sửa
             </Button>

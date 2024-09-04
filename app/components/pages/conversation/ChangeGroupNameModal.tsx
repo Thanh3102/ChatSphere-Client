@@ -70,7 +70,12 @@ export default function ChangeGroupNameModal({ isOpen, setIsOpen }: Props) {
               onChange={(e) => setNewName(e.target.value)}
             />
             <div className="flex gap-2 my-4">
-              <Button type="button" radius="sm" fullWidth>
+              <Button
+                type="button"
+                radius="sm"
+                fullWidth
+                onClick={() => setIsOpen(false)}
+              >
                 Hủy
               </Button>
               <Button

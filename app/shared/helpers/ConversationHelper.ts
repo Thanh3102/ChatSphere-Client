@@ -31,7 +31,7 @@ export function getConversationInfo(
     }
   } else {
     const member =
-      conversation.members[0].id === currentUserId
+      conversation.members[0].user.id === currentUserId
         ? conversation.members[1]
         : conversation.members[0];
     (info.avatar = member.user.image), (info.name = member.user.name);
