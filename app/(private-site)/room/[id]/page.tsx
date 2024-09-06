@@ -1,12 +1,11 @@
 "use client";
-import VideoStream from "@/app/components/pages/room/VideoStream";
 import VideoStreamContainer from "@/app/components/pages/room/VideoStreamContainer";
 import RenderIf from "@/app/components/ui/RenderIf";
 import { UserBasicInfo } from "@/app/shared/types/user";
 import { getSocket } from "@/socket";
 import { Button, Spinner, Tooltip } from "@nextui-org/react";
 import { getSession, useSession } from "next-auth/react";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   BsCameraVideo,
@@ -20,6 +19,7 @@ import Peer, { SignalData } from "simple-peer";
 interface Props {
   params: {
     id: string;
+    type: "video" | "voice"
   };
 }
 
@@ -42,11 +42,11 @@ type UserJoinedPayload = {
 
 type UserLeftPayload = { user: UserBasicInfo };
 
-const Page = ({ params: { id } }: Props) => {
+const Page = ({ params: { id, type } }: Props) => {
   const { status } = useSession();
   const [stream, setStream] = useState<MediaStream>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isOpenCamera, setIsOpenCamera] = useState<boolean>(true);
+  const [isOpenCamera, setIsOpenCamera] = useState<boolean>(type === "video" ? true : false);
   const [isOpenVoice, setIsOpenVoice] = useState<boolean>(true);
   const myVideoRef = useRef<HTMLVideoElement>(null);
   const socketRef = useRef<any>(null);
@@ -205,8 +205,6 @@ const Page = ({ params: { id } }: Props) => {
     }
   };
 
-
-
   useEffect(() => {
     if (status === "authenticated") {
       setIsLoading(false);
@@ -233,19 +231,20 @@ const Page = ({ params: { id } }: Props) => {
   return (
     <div className="h-screen">
       <RenderIf condition={isLoading}>
-        <Spinner />
+        <div className="h-full w-full flex items-center justify-center">
+          <Spinner /> <span className="text-xl font-semibold">Đang chờ</span>
+        </div>
       </RenderIf>
 
       <RenderIf condition={!isLoading}>
         <RenderIf
           condition={Object.keys(remoteStreamsRef.current).length !== 0}
         >
-          <VideoStreamContainer data={remoteStreamsRef.current}/>
+          <VideoStreamContainer data={remoteStreamsRef.current} />
         </RenderIf>
 
         <RenderIf condition={Object.keys(remoteStreamsRef.current).length == 0}>
-          <Spinner />
-          <span>Đang chờ</span>
+          <Spinner /> <span className="text-xl font-semibold">Đang chờ</span>
         </RenderIf>
 
         <div className="absolute bottom-0 right-0">
@@ -261,7 +260,7 @@ const Page = ({ params: { id } }: Props) => {
         <div className="absolute bottom-20 w-full items-center z-10">
           <div className="gap-8 flex justify-center items-center">
             <Tooltip placement="top" content="Bật/Tắt camera" showArrow>
-              <Button isIconOnly onClick={handleCamera} size="lg">
+              <Button isIconOnly onClick={handleCamera} size="lg" isDisabled={type === "voice"}>
                 {isOpenCamera ? <BsCameraVideo /> : <BsCameraVideoOff />}
               </Button>
             </Tooltip>

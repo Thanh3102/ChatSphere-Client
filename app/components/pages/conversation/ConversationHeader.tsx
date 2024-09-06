@@ -11,8 +11,6 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { IoVideocam } from "react-icons/io5";
 import ConversationHeaderInfo from "./ConversationHeaderInfo";
-import toast from "react-hot-toast";
-import { useRouter } from "next/router";
 import { getSocket } from "@/socket";
 import { SOCKET_EVENT } from "@/app/shared/enums";
 import RenderIf from "../../ui/RenderIf";
@@ -25,15 +23,16 @@ export default function ConversationHeader() {
   const dispatch = useAppDispatch();
   const info = getConversationInfo(conversation, session?.user.id);
 
-  const handleVideoCall = () => {
+  const handleCall = (type: "video" | "voice") => {
     if (!conversation) return;
 
     const socket = getSocket();
 
     socket.emit(SOCKET_EVENT.START_CALL, {
-      type: "video",
+      type: type,
       conversationId: conversation.id,
       userId: session?.user.id,
+      isGroup: conversation.isGroup,
     });
   };
 
@@ -69,14 +68,17 @@ export default function ConversationHeader() {
         </div>
         <div className="text-blue-500 flex gap-3 text-xl">
           <Tooltip content="Bắt đầu gọi thoại" showArrow placement="bottom">
-            <div className="p-2 rounded-full hover:cursor-pointer hover:bg-gray-100">
+            <div
+              className="p-2 rounded-full hover:cursor-pointer hover:bg-gray-100"
+              onClick={() => handleCall("voice")}
+            >
               <FaPhoneAlt />
             </div>
           </Tooltip>
           <Tooltip content="Bắt đầu gọi video" showArrow placement="bottom">
             <div
               className="p-2 rounded-full hover:cursor-pointer hover:bg-gray-100"
-              onClick={handleVideoCall}
+              onClick={() => handleCall("video")}
             >
               <IoVideocam className="text-2xl" />
             </div>

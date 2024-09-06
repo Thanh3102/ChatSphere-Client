@@ -85,7 +85,6 @@ export default function ConversationMessage({ messages }: Props) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
 
       if (data.messages.length == 0) setIsFullMessage(true);
 

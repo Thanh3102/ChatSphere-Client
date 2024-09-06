@@ -121,12 +121,14 @@ export default function MessageAction({
               </div>
             </RenderIf>
 
-            <div
+            {/* Uncommit when adding tranfer feature */}
+            {/* <div
               className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
               onClick={handleTranfer}
             >
               Chuyển tiếp
-            </div>
+            </div> */}
+
             <RenderIf condition={!message.isPin}>
               <div
                 className="py-2 px-4 hover:bg-gray-100 hover:cursor-pointer w-full rounded-lg"
