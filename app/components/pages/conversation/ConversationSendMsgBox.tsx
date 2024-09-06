@@ -285,7 +285,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
       messageInputRef.current.style.height = "auto";
       messageInputRef.current.style.height = `${Math.min(
         messageInputRef.current.scrollHeight,
-        120
+        100
       )}px`;
     }
   }, [message]);
@@ -355,7 +355,7 @@ export default function ConversationSendMsgBox({ conversationId }: Props) {
               </div>
             )}
 
-            <div className="flex items-center gap-2 h-full">
+            <div className="flex items-center gap-2">
               <textarea
                 ref={messageInputRef}
                 placeholder="Aa"

@@ -48,12 +48,12 @@ const NotificationMessage = ({ message, isCurrentUser }: Props) => {
       break;
     case "changeEmoji":
       content = (
-        <>
+        <div className="flex gap-2">
           {`${
             isCurrentUser ? "Bạn" : message.sender.name
           } đã thay đổi biểu tượng cảm xúc thành`}
           <Emoji unified={message.notificationTarget} size={16} />
-        </>
+        </div>
       );
       break;
     case "changeGroupName":

@@ -12,18 +12,18 @@ const items: { title: string; icon: ReactNode }[] = [
     title: "Đoạn chat",
     icon: <IoChatbubbleSharp />,
   },
-  {
-    title: "Mọi người",
-    icon: <IoPeopleSharp />,
-  },
-  {
-    title: "Yêu cầu",
-    icon: <AiFillMessage />,
-  },
-  {
-    title: "Lưu trữ",
-    icon: <FaBoxArchive />,
-  },
+  // {
+  //   title: "Mọi người",
+  //   icon: <IoPeopleSharp />,
+  // },
+  // {
+  //   title: "Yêu cầu",
+  //   icon: <AiFillMessage />,
+  // },
+  // {
+  //   title: "Lưu trữ",
+  //   icon: <FaBoxArchive />,
+  // },
 ];
 
 export default function NavbarItem() {
