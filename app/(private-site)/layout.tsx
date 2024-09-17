@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
 import { Fragment, ReactNode } from "react";
-import { authOption } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { CHECK_EMAIL_VERIFY } from "../shared/constants/ApiRoute";
 import { signOut } from "next-auth/react";
+import { authOption } from "../libs/authOptions";
 
 interface Props {
   children: ReactNode;

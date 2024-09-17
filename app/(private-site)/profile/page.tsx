@@ -1,5 +1,5 @@
-import { authOption } from "@/app/api/auth/[...nextauth]/route";
 import TabContainer from "@/app/components/pages/profile/TabContainer";
+import { authOption } from "@/app/libs/authOptions";
 import { GET_USER_BY_ID_ROUTE } from "@/app/shared/constants/ApiRoute";
 import { getServerSession } from "next-auth";
 

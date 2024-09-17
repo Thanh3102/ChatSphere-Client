@@ -1,6 +1,6 @@
 "use client";
 import { getConversationInfo } from "@/app/shared/helpers/ConversationHelper";
-import { UserConversation } from "@/app/shared/types/conversation";
+import { ConversationBasicInfo, UserConversation } from "@/app/shared/types/conversation";
 import { Avatar } from "@nextui-org/react";
 import { Emoji } from "emoji-picker-react";
 import { useSession } from "next-auth/react";
@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface Props {
-  conversation: UserConversation;
+  conversation: ConversationBasicInfo;
 }
 export default function ConversationListItem({ conversation }: Props) {
   const [lastAt, setLastAt] = useState<Date>(conversation.lastMessageAt);

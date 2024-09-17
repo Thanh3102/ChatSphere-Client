@@ -1,5 +1,5 @@
-import { authOption } from "@/app/api/auth/[...nextauth]/route";
 import ResendVerifyButton from "@/app/components/pages/unverify/ResendVerifyButton";
+import { authOption } from "@/app/libs/authOptions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { FaRegCircleCheck } from "react-icons/fa6";

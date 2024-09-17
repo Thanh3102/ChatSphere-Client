@@ -1,5 +1,5 @@
-import { authOption } from "@/app/api/auth/[...nextauth]/route";
 import LoginForm from "@/app/components/forms/LoginForm";
+import { authOption } from "@/app/libs/authOptions";
 import { Divider } from "@nextui-org/react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
