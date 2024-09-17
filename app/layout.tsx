@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
+import { Suspense } from "react";
+import { Spinner } from "@nextui-org/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,13 +18,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en" className="">
       <body className={inter.className}>
         <Providers>
           <Toaster position="bottom-center" />
-          {children}
+          <Suspense
+            fallback={
+              <div className="flex gap-4">
+                <Spinner />
+                <span>Loading...</span>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
         </Providers>
       </body>
     </html>

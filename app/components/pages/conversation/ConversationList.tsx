@@ -1,8 +1,8 @@
-import { UserConversation } from "@/app/shared/types/conversation";
+import { ConversationBasicInfo, UserConversation } from "@/app/shared/types/conversation";
 import ConversationListItem from "./ConversationListItem";
 
 interface Props {
-  conversations: UserConversation[];
+  conversations: ConversationBasicInfo[];
 }
 
 export default function ConversationList({ conversations }: Props) {  

@@ -10,7 +10,7 @@ import { IoMail } from "react-icons/io5";
 
 const Page = async () => {
   const session = await getServerSession(authOption);
-  if (session?.user) {
+  if (session?.user && !session.terminate) {
     redirect("/conversations");
   }
   return (

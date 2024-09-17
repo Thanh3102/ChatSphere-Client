@@ -1,8 +1,6 @@
 import { ConversationMessage } from "@/app/shared/types/conversation";
 import { Avatar, Tooltip } from "@nextui-org/react";
 import MessageContent from "./MessageContent";
-import { useAppDispatch } from "@/app/libs/hooks";
-import { setReplyMessage } from "@/app/libs/redux/slices/ConversationSlice";
 import ReplyContent from "./ReplyContent";
 import { forwardRef } from "react";
 import RenderIf from "../../ui/RenderIf";
@@ -69,5 +67,7 @@ const ConversationMessageItem = forwardRef<HTMLDivElement, Props>(
     return <>Không thể hiển thị tin nhắn này</>;
   }
 );
+
+ConversationMessageItem.displayName = "ConversationMessageItem";
 
 export default ConversationMessageItem;

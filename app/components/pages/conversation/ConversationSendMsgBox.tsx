@@ -31,11 +31,17 @@ import EmojiPicker, {
   Theme,
 } from "emoji-picker-react";
 import ConversationFileItem from "./ConversationAttachFileItem";
-import VoiceRecorder from "./VoiceRecorder";
 import { categories_VN } from "@/app/libs/ReactEmojiPicker";
 import { getSocket } from "@/socket";
 import { SOCKET_EVENT } from "@/app/shared/enums";
 import RenderIf from "../../ui/RenderIf";
+import dynamic from "next/dynamic";
+// import VoiceRecorder from "./VoiceRecorder";
+
+const VoiceRecorder = dynamic(
+  () => import("./VoiceRecorder").then((mod) => mod.default),
+  { ssr: false }
+);
 
 interface Props {
   conversationId?: string;

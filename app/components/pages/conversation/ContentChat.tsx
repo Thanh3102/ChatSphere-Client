@@ -4,7 +4,7 @@ import { SelectContent } from "@/app/libs/redux/slices/AppSlice";
 import { LuPenSquare } from "react-icons/lu";
 import ConversationList from "./ConversationList";
 import { GET_USER_CONVERSATION_ROUTE } from "@/app/shared/constants/ApiRoute";
-import { UserConversation } from "@/app/shared/types/conversation";
+import { ConversationBasicInfo, UserConversation } from "@/app/shared/types/conversation";
 import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Spinner } from "@nextui-org/react";
@@ -12,7 +12,7 @@ import { getSocket } from "@/socket";
 import { SOCKET_EVENT } from "@/app/shared/enums";
 
 export default function ContentChat() {
-  const [conversations, setConversation] = useState<UserConversation[]>([]);
+  const [conversations, setConversation] = useState<ConversationBasicInfo[]>([]);
 
   const getData = async () => {
     const session = await getSession();

@@ -7,7 +7,7 @@ interface Props {
   message: ConversationMessage;
   userId: string | undefined;
 }
-const replyMessage = ({ message, userId }: Props) => {
+const ReplyMessage = ({ message, userId }: Props) => {
   const dispatch = useAppDispatch();
   return (
     <div className="px-5 py-2 border-t-1 border-gray-300 flex items-center">
@@ -30,4 +30,4 @@ const replyMessage = ({ message, userId }: Props) => {
   );
 };
 
-export default replyMessage;
+export default ReplyMessage;

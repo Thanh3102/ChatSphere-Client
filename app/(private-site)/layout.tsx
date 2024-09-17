@@ -30,8 +30,8 @@ export default async function Layout({ children }: Props) {
   const session = await getServerSession(authOption);
   const isVerify = await isUserVerifyEmail();
 
-  if (!session?.terminate) {
-    signOut();
+  if (session?.terminate) {
+    redirect("/login")
   }
 
   if (!isVerify) {

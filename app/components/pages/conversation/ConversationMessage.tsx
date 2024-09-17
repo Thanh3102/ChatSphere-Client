@@ -1,3 +1,4 @@
+"use client"
 import { useAppDispatch, useAppSelector } from "@/app/libs/hooks";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/react";
