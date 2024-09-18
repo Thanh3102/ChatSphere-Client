@@ -1,11 +1,10 @@
-import { getSession } from "next-auth/react";
 import { Socket } from "socket.io-client";
 import io from "socket.io-client";
 
 let socket: Socket;
 
 export const initSocket = () => {
-  socket = io("http://localhost:3002");
+  socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`);
 
   socket.on("connect", () => {
     console.log("Connected to socket server");
