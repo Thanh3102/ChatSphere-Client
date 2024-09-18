@@ -1,5 +1,8 @@
 import { JWT } from "next-auth/jwt";
-import { REFRESH_TOKEN_ROUTE, SIGNIN_ROUTE } from "../shared/constants/ApiRoute";
+import {
+  REFRESH_TOKEN_ROUTE,
+  SIGNIN_ROUTE,
+} from "../shared/constants/ApiRoute";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -12,7 +15,7 @@ async function refreshToken(token: JWT) {
       authorization: `Refresh ${token.refreshToken}`,
     },
   }).then((res) => res.json());
-//   console.log("[NextAuth] New token response :", response);
+  //   console.log("[NextAuth] New token response :", response);
 
   if (response.accessToken) {
     return {
@@ -54,25 +57,27 @@ export const authOption: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const { email, password } = credentials;
+        
         const response = await fetch(SIGNIN_ROUTE, {
           method: "POST",
           body: JSON.stringify({ email: email, password: password }),
           headers: {
             "Content-Type": "application/json",
           },
-        }).then((res) => res.json());
+        });
 
-        if (response.statusCode === 200) {
+        const data = await response.json();
+        if (response.ok) {
           const user = {
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            user: { ...response.user },
-            expiresIn: response.expiresIn,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            user: { ...data.user },
+            expiresIn: data.expiresIn,
           };
           return user;
         }
 
-        throw new Error(response.message);
+        throw new Error(data.message);
       },
     }),
   ],
@@ -106,4 +111,3 @@ export const authOption: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
