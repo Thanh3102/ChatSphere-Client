@@ -1,7 +1,8 @@
 "use client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -11,9 +12,9 @@ import { z } from "zod";
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, { message: "Chưa nhập email" })
+    .min(1, { message: "Không thể để trống" })
     .email({ message: "Email không đúng định dạng" }),
-  password: z.string().min(8, { message: "Mạt khẩu có ít nhất 8 kí tự" }),
+  password: z.string().min(1, { message: "Chưa nhập giá trị" }),
 });
 
 type LoginField = z.infer<typeof loginSchema>;
@@ -26,7 +27,7 @@ const LoginForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginField>();
+  } = useForm<LoginField>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit: SubmitHandler<LoginField> = async (data) => {
     setIsLoading(true);
@@ -56,6 +57,8 @@ const LoginForm = () => {
             placeholder="Nhập email của bạn"
             variant="bordered"
             labelPlacement="outside"
+            isInvalid={errors.email ? true : false}
+            errorMessage={errors.email?.message}
             {...register("email")}
           />
           <Input
@@ -65,6 +68,8 @@ const LoginForm = () => {
             variant="bordered"
             labelPlacement="outside"
             description="Bạn không nên chia sẻ mật khẩu với người lạ"
+            isInvalid={errors.password ? true : false}
+            errorMessage={errors.password?.message}
             endContent={
               <button
                 type="button"
