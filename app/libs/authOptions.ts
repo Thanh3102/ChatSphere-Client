@@ -5,7 +5,6 @@ import {
 } from "../shared/constants/ApiRoute";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import axios from "axios";
 
 async function refreshToken(token: JWT) {
   console.log("[NextAuth] Refresh new access token");
@@ -58,27 +57,25 @@ export const authOption: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const { email, password } = credentials;
+        const response = await fetch(SIGNIN_ROUTE, {
+          method: "POST",
+          body: JSON.stringify({ email: email, password: password }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then((res) => res.json());
 
-        const response = await axios
-          .post(SIGNIN_ROUTE, {
-            email: email,
-            password: password,
-          })
-          .then((response) => {
-            return response.data;
-          })
-          .catch((error) => {
-            console.log(error.response);
-            throw new Error(error.response.data.message);
-          });
+        if (response.statusCode === 200) {
+          const user = {
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            user: { ...response.user },
+            expiresIn: response.expiresIn,
+          };
+          return user;
+        }
 
-        const user = {
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
-          user: { ...response.user },
-          expiresIn: response.expiresIn,
-        };
-        return user;
+        throw new Error(response.message);
       },
     }),
   ],
