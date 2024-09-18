@@ -13,7 +13,7 @@ interface Props {
 const FileMessage = ({ message, isCurrentUser }: Props) => {
   if (message.fileType.startsWith("image")) {
     return (
-      <Link href={message.fileURL} target="_blank">
+      <Link href={message.fileSecureURL} target="_blank">
         {message.isPin && (
           <div className="absolute -top-2 -right-2 text-red-500 text-lg">
             <GiPin />
@@ -24,7 +24,7 @@ const FileMessage = ({ message, isCurrentUser }: Props) => {
           placement={isCurrentUser ? "left" : "right"}
         >
           <Image
-            src={message.fileURL}
+            src={message.fileSecureURL}
             alt=""
             width={200}
             height={200}
@@ -48,14 +48,14 @@ const FileMessage = ({ message, isCurrentUser }: Props) => {
               <GiPin />
             </div>
           )}
-          <video src={message.fileURL} controls muted className="rounded-xl" />
+          <video src={message.fileSecureURL} controls muted className="rounded-xl" />
         </div>
       </Tooltip>
     );
   }
 
   return (
-    <Link href={message.fileURL} target="_blank">
+    <Link href={message.fileSecureURL} target="_blank">
       <Tooltip
         content={DateToString(message.createdAt)}
         placement={isCurrentUser ? "left" : "right"}

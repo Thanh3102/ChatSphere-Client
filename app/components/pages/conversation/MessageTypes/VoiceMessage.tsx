@@ -26,7 +26,7 @@ const VoiceMessage = ({ message, isCurrentUser }: Props) => {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const response = await fetch(message.fileURL);
+    const response = await fetch(message.fileSecureURL);
     if (response.ok) {
       setBlob(await response.blob());
     }
@@ -130,7 +130,7 @@ const VoiceMessage = ({ message, isCurrentUser }: Props) => {
               {formatTimer(timer)}
             </span>
             <audio
-              src={message.fileURL}
+              src={message.fileSecureURL}
               className="hidden"
               ref={audioElementRef}
             />
